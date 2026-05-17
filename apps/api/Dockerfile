@@ -48,10 +48,14 @@ COPY --from=builder --chown=api:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=api:nodejs /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder --chown=api:nodejs /app/packages ./packages
 
+# Script de inicio: corre migraciones y luego arranca el servidor
+COPY --chown=api:nodejs start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
 USER api
 
 EXPOSE 4000
 
 ENV PORT=4000
 
-CMD ["node", "dist/index.js"]
+CMD ["/app/start.sh"]

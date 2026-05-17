@@ -49,11 +49,13 @@ export default fp(async function securityPlugin(app: FastifyInstance) {
   // ==========================================
   // 3. CORS
   // ==========================================
+  const corsOrigins = env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean);
+
   await app.register(cors, {
-    origin: env.CORS_ORIGIN,
+    origin: corsOrigins.length > 1 ? corsOrigins : corsOrigins[0],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
-    maxAge: 86400, // 1 dia de cache para preflight
+    maxAge: 86400,
     allowedHeaders: [
       'Content-Type',
       'Authorization',
