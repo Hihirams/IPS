@@ -49,7 +49,7 @@ COPY --from=builder --chown=api:nodejs /app/apps/api/node_modules ./apps/api/nod
 COPY --from=builder --chown=api:nodejs /app/packages ./packages
 
 # Script de inicio: corre migraciones y luego arranca el servidor
-COPY --chown=api:nodejs start.sh /app/start.sh
+COPY --from=builder --chown=api:nodejs /app/apps/api/start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
 USER api
