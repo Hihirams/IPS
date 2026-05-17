@@ -11,6 +11,7 @@ await build({
   keepNames: true,
   external: [
     '@prisma/client',
+    '@prisma/adapter-pg',
     '@prisma/extension-omit',
     'fastify',
     '@fastify/*',
