@@ -133,7 +133,7 @@ export async function getAdminOrderDetail(orderId: string) {
       },
       address: true,
       items: {
-        orderBy: { createdAt: 'desc' },
+        orderBy: { id: 'desc' },
       },
       statusHistory: {
         orderBy: { createdAt: 'desc' },
