@@ -1,3 +1,9 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -14,6 +20,15 @@ const nextConfig = {
         destination: `${process.env.API_URL || 'http://localhost:4000'}/api/:path*`,
       },
     ];
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'src'),
+      '@ecommerce/types': path.resolve(__dirname, '../../packages/types/src'),
+      '@ecommerce/ui': path.resolve(__dirname, '../../packages/ui/src'),
+    };
+    return config;
   },
   // SECURITY: Configuración de SRI (Subresource Integrity)
   // Next.js genera automáticamente hashes SRI para chunks internos.

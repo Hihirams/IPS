@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@ecommerce/types": ["../../packages/types/src"],
+      "@ecommerce/ui": ["../../packages/ui/src"]
+    }
+  }
+}
