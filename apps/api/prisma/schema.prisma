@@ -37,27 +37,28 @@ enum AddressLabel {
 // ==========================================
 
 model User {
-  id                 String    @id @default(cuid())
-  email              String    @unique
-  passwordHash       String    @map("password_hash")
-  name               String?
-  phone              String?
-  role               Role      @default(USER)
-  isEmailVerified    Boolean   @default(false) @map("is_email_verified")
-  isBanned           Boolean   @default(false) @map("is_banned")
-  failedLoginAttempts Int      @default(0) @map("failed_login_attempts")
-  lastFailedLogin    DateTime? @map("last_failed_login")
-  createdAt          DateTime  @default(now()) @map("created_at")
-  updatedAt          DateTime  @updatedAt @map("updated_at")
-  deletedAt          DateTime? @map("deleted_at")
-  mfaSecret          String?   @map("mfa_secret")
-  mfaEnabled         Boolean   @default(false) @map("mfa_enabled")
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  passwordHash        String    @map("password_hash")
+  name                String?
+  phone               String?
+  role                Role      @default(USER)
+  isEmailVerified     Boolean   @default(false) @map("is_email_verified")
+  isBanned            Boolean   @default(false) @map("is_banned")
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lastFailedLogin     DateTime? @map("last_failed_login")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  deletedAt           DateTime? @map("deleted_at")
+  mfaSecret           String?   @map("mfa_secret")
+  mfaEnabled          Boolean   @default(false) @map("mfa_enabled")
 
-  sessions  Session[]
-  orders    Order[]
-  addresses Address[]
-  reviews   Review[]
-  cart      Cart?
+  sessions       Session[]
+  orders         Order[]
+  addresses      Address[]
+  reviews        Review[]
+  cart           Cart?
+  adminAuditLogs AdminAuditLog[] @relation("AdminAuditLog")
 
   // Soft delete: no retornar usuarios eliminados por defecto
   @@index([email])
@@ -112,8 +113,8 @@ model Product {
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
-  category   Category     @relation(fields: [categoryId], references: [id])
-  brand      Brand?       @relation(fields: [brandId], references: [id])
+  category   Category    @relation(fields: [categoryId], references: [id])
+  brand      Brand?      @relation(fields: [brandId], references: [id])
   cartItems  CartItem[]
   orderItems OrderItem[]
   reviews    Review[]
@@ -150,11 +151,11 @@ model Category {
 // ==========================================
 
 model Brand {
-  id       String    @id @default(cuid())
+  id       String  @id @default(cuid())
   name     String
-  slug     String    @unique
+  slug     String  @unique
   logo     String?
-  isActive Boolean   @default(true) @map("is_active")
+  isActive Boolean @default(true) @map("is_active")
 
   products Product[]
 
@@ -167,8 +168,8 @@ model Brand {
 
 model Cart {
   id        String    @id @default(cuid())
-  userId    String?   @map("user_id") @unique
-  sessionId String?   @map("session_id") @unique
+  userId    String?   @unique @map("user_id")
+  sessionId String?   @unique @map("session_id")
   expiresAt DateTime? @map("expires_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
@@ -183,11 +184,11 @@ model Cart {
 // ==========================================
 
 model CartItem {
-  id           String  @id @default(cuid())
-  cartId       String  @map("cart_id")
-  productId    String  @map("product_id")
-  quantity     Int
-  priceAtTime  Decimal @map("price_at_time") @db.Decimal(10, 2)
+  id          String  @id @default(cuid())
+  cartId      String  @map("cart_id")
+  productId   String  @map("product_id")
+  quantity    Int
+  priceAtTime Decimal @map("price_at_time") @db.Decimal(10, 2)
 
   cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
@@ -239,10 +240,10 @@ model Order {
   createdAt             DateTime    @default(now()) @map("created_at")
   updatedAt             DateTime    @updatedAt @map("updated_at")
 
-  user           User                 @relation(fields: [userId], references: [id])
-  address        Address              @relation(fields: [addressId], references: [id])
-  items          OrderItem[]
-  statusHistory  OrderStatusHistory[]
+  user          User                 @relation(fields: [userId], references: [id])
+  address       Address              @relation(fields: [addressId], references: [id])
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
 
   @@index([userId])
   @@index([status])
@@ -256,14 +257,14 @@ model Order {
 // ==========================================
 
 model OrderItem {
-  id           String  @id @default(cuid())
-  orderId      String  @map("order_id")
-  productId    String  @map("product_id")
-  productName  String  @map("product_name")
-  productSku   String  @map("product_sku")
-  quantity     Int
-  unitPrice    Decimal @map("unit_price") @db.Decimal(10, 2)
-  total        Decimal @db.Decimal(10, 2)
+  id          String  @id @default(cuid())
+  orderId     String  @map("order_id")
+  productId   String  @map("product_id")
+  productName String  @map("product_name")
+  productSku  String  @map("product_sku")
+  quantity    Int
+  unitPrice   Decimal @map("unit_price") @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
@@ -292,15 +293,15 @@ model OrderStatusHistory {
 // ==========================================
 
 model Review {
-  id                String   @id @default(cuid())
-  userId            String   @map("user_id")
-  productId         String   @map("product_id")
-  rating            Int
-  title             String
-  body              String   @db.Text
-  isVerifiedPurchase Boolean @default(false) @map("is_verified_purchase")
-  isApproved        Boolean  @default(false) @map("is_approved")
-  createdAt         DateTime @default(now()) @map("created_at")
+  id                 String   @id @default(cuid())
+  userId             String   @map("user_id")
+  productId          String   @map("product_id")
+  rating             Int
+  title              String
+  body               String   @db.Text
+  isVerifiedPurchase Boolean  @default(false) @map("is_verified_purchase")
+  isApproved         Boolean  @default(false) @map("is_approved")
+  createdAt          DateTime @default(now()) @map("created_at")
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)

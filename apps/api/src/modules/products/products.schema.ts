@@ -45,7 +45,7 @@ export type SearchQueryInput = z.infer<typeof SearchQuerySchema>;
 // Admin product schemas
 // ==========================================
 
-export const CreateProductSchema = z.object({
+const ProductBaseSchema = z.object({
   sku: z.string().min(1).max(100, 'SKU demasiado largo'),
   name: z.string().min(1).max(200, 'Nombre demasiado largo'),
   slug: z.string().regex(slugRegex, 'Slug inválido').optional(),
@@ -61,7 +61,9 @@ export const CreateProductSchema = z.object({
   isFeatured: z.boolean().default(false),
   categoryId: z.string().min(1),
   brandId: z.string().optional().nullable(),
-}).superRefine((data, ctx) => {
+});
+
+export const CreateProductSchema = ProductBaseSchema.superRefine((data, ctx) => {
   // Validar specs no exceda 10KB
   if (data.specs) {
     const specsSize = Buffer.byteLength(JSON.stringify(data.specs));
@@ -86,7 +88,28 @@ export const CreateProductSchema = z.object({
 
 export type CreateProductInput = z.infer<typeof CreateProductSchema>;
 
-export const UpdateProductSchema = CreateProductSchema.partial();
+export const UpdateProductSchema = ProductBaseSchema.partial().superRefine((data, ctx) => {
+  // Validar specs no exceda 10KB (solo si se envía en update)
+  if (data.specs) {
+    const specsSize = Buffer.byteLength(JSON.stringify(data.specs));
+    if (specsSize > 10240) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'El campo specs no puede exceder 10KB',
+        path: ['specs'],
+      });
+    }
+  }
+
+  // Validar comparePrice > price si ambos existen
+  if (data.comparePrice != null && data.price != null && data.comparePrice <= data.price) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'El precio comparativo debe ser mayor al precio actual',
+      path: ['comparePrice'],
+    });
+  }
+});
 
 export type UpdateProductInput = z.infer<typeof UpdateProductSchema>;
 

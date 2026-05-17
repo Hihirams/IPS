@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
-import { authenticate } from '../../middleware/auth.middleware';
-import { requireAdmin, requireMFA, requireAdminSession } from '../../middleware/admin-auth.middleware';
+import { authenticate, requireAdmin } from '../../middleware/auth.middleware';
+import { requireMFA, requireAdminSession } from '../../middleware/admin-auth.middleware';
 import { logAdminAction } from '../admin/audit.service';
 import {
   UpdateProfileSchema,
