@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/csrf';
 import type { AdminUserListItem } from '@ecommerce/types';
 
 export default function AdminUsersPage() {
@@ -45,12 +46,8 @@ export default function AdminUsersPage() {
     if (!banningUser || !banReason.trim()) return;
 
     try {
-      const res = await fetch(`/api/admin/users/${banningUser}/ban`, {
+      const res = await apiFetch(`/api/admin/users/${banningUser}/ban`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
         body: JSON.stringify({ reason: banReason }),
       });
       const json = await res.json();

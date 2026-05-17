@@ -50,6 +50,17 @@ const ACCESS_COOKIE_OPTIONS = {
  */
 const AUTH_ERROR_MSG = 'Credenciales inválidas';
 
+type LoginUser = {
+  id: string;
+  email: string;
+  passwordHash: string | null;
+  name: string | null;
+  role: 'USER' | 'ADMIN';
+  isEmailVerified: boolean;
+  mfaEnabled: boolean;
+  isBanned: boolean;
+};
+
 /**
  * Registra todas las rutas de autenticación.
  */
@@ -189,10 +200,21 @@ export async function authRoutes(app: FastifyInstance) {
       // 2. Validar input
       const data = request.validate(LoginSchema, 'body') as LoginInput;
 
-      // 3. Buscar usuario (incluyendo passwordHash para comparación)
-      const user = await prisma.user.findUnique({
-        where: { email: data.email },
-      });
+      // 3. Buscar usuario incluyendo passwordHash para comparación.
+      const [user] = await prisma.$queryRaw<LoginUser[]>`
+        SELECT
+          id,
+          email,
+          password_hash AS "passwordHash",
+          name,
+          role,
+          is_email_verified AS "isEmailVerified",
+          mfa_enabled AS "mfaEnabled",
+          is_banned AS "isBanned"
+        FROM users
+        WHERE email = ${data.email} AND deleted_at IS NULL
+        LIMIT 1
+      `;
 
       // 4. Si no existe o password incorrecto → mensaje genérico
       if (!user || !user.passwordHash) {

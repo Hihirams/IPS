@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiFetch } from '@/lib/csrf';
 import type { AdminOrderDetail, OrderStatus } from '@ecommerce/types';
 
 const statusLabels: Record<string, string> = {
@@ -70,12 +71,8 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
     setError('');
 
     try {
-      const res = await fetch(`/api/admin/orders/${params.id}/status`, {
+      const res = await apiFetch(`/api/admin/orders/${params.id}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
         body: JSON.stringify({ status: newStatus, notes: statusNotes }),
       });
       const json = await res.json();

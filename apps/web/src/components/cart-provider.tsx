@@ -47,9 +47,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({ productId, quantity }),
         });
         const json = await res.json();
-        if (json.success) {
-          await fetchCart();
+        if (!json.success) {
+          throw new Error(json.error?.message ?? 'No se pudo agregar al carrito.');
         }
+
+        await fetchCart();
       } finally {
         setIsLoading(false);
       }

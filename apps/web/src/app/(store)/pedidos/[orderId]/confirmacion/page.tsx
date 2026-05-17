@@ -16,7 +16,7 @@ export default function OrderConfirmationPage() {
     orderNumber: string;
     total: number;
     status: string;
-    items: Array<{ name: string; quantity: number; unitPrice: number }>;
+    items: Array<{ productName: string; quantity: number; unitPrice: number }>;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -75,7 +75,7 @@ export default function OrderConfirmationPage() {
             {order.items.map((item, i) => (
               <div key={i} className="flex justify-between py-3 text-sm">
                 <span className="text-slate-700">
-                  {item.name} x {item.quantity}
+                  {item.productName} x {item.quantity}
                 </span>
                 <span className="font-medium text-slate-900">
                   ${(item.unitPrice * item.quantity).toLocaleString('es-MX', { minimumFractionDigits: 2 })}

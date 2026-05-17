@@ -316,7 +316,7 @@ async function handlePaymentSucceeded(
   paymentIntent: Stripe.PaymentIntent,
   eventId: string
 ) {
-  const order = await prisma.order.findUnique({
+  const order = await prisma.order.findFirst({
     where: { stripePaymentIntentId: paymentIntent.id },
     include: { items: true },
   });
@@ -370,7 +370,7 @@ async function handlePaymentFailed(
   paymentIntent: Stripe.PaymentIntent,
   eventId: string
 ) {
-  const order = await prisma.order.findUnique({
+  const order = await prisma.order.findFirst({
     where: { stripePaymentIntentId: paymentIntent.id },
     include: { items: true },
   });
@@ -437,7 +437,7 @@ async function handleChargeRefunded(
   charge: Stripe.Charge,
   eventId: string
 ) {
-  const order = await prisma.order.findUnique({
+  const order = await prisma.order.findFirst({
     where: { stripeChargeId: charge.id },
     include: { items: true },
   });

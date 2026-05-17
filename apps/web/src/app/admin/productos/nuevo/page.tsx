@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
+import { apiFetch } from '@/lib/csrf';
 
 const ProductSchema = z.object({
   sku: z.string().min(1, 'SKU requerido').max(100),
@@ -49,7 +50,9 @@ export default function NewProductPage() {
   const removeSpec = (index: number) => setSpecs(specs.filter((_, i) => i !== index));
   const updateSpec = (index: number, field: 'key' | 'value', value: string) => {
     const newSpecs = [...specs];
-    newSpecs[index][field] = value;
+    const spec = newSpecs[index];
+    if (!spec) return;
+    spec[field] = value;
     setSpecs(newSpecs);
   };
 
@@ -64,12 +67,8 @@ export default function NewProductPage() {
       reader.onloadend = async () => {
         const base64 = reader.result as string;
         try {
-          const res = await fetch('/api/admin/upload/image', {
+          const res = await apiFetch('/api/admin/upload/image', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
             body: JSON.stringify({
               image: base64,
               filename: file.name,
@@ -131,12 +130,8 @@ export default function NewProductPage() {
     );
 
     try {
-      const res = await fetch('/api/admin/products', {
+      const res = await apiFetch('/api/admin/products', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
         body: JSON.stringify({
           ...validation.data,
           description: form.description,

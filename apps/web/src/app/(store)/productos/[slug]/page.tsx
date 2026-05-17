@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { AddToCartControls } from '@/components/add-to-cart-controls';
 import { StarRating } from '@/components/star-rating';
 import { api } from '@/lib/api';
 import type { PublicProductDetail } from '@ecommerce/types';
@@ -74,7 +75,6 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
       title: product.name,
       description: product.description.slice(0, 160),
       images: product.images[0] ? [product.images[0]] : [],
-      type: 'product',
     },
     twitter: {
       card: 'summary_large_image',
@@ -207,16 +207,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
           {/* Selector de cantidad + Agregar al carrito */}
           {product.stockStatus !== 'out_of_stock' && (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center rounded-lg border border-slate-200">
-                <button className="px-3 py-2 text-slate-600 hover:bg-slate-50">-</button>
-                <span className="w-10 text-center text-sm font-medium">1</span>
-                <button className="px-3 py-2 text-slate-600 hover:bg-slate-50">+</button>
-              </div>
-              <button className="flex-1 rounded-lg bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-slate-800">
-                Agregar al Carrito
-              </button>
-            </div>
+            <AddToCartControls productId={product.id} />
           )}
         </div>
       </div>

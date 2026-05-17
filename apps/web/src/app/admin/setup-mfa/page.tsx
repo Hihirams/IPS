@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { apiFetch } from '@/lib/csrf';
 
 export default function AdminSetupMFAPage() {
   const router = useRouter();
@@ -24,9 +25,8 @@ export default function AdminSetupMFAPage() {
 
   async function generateMFA() {
     try {
-      const res = await fetch('/api/auth/mfa/setup', {
+      const res = await apiFetch('/api/auth/mfa/setup', {
         method: 'POST',
-        credentials: 'include',
       });
       const json = await res.json();
       if (json.success) {
@@ -49,12 +49,8 @@ export default function AdminSetupMFAPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/auth/mfa/enable', {
+      const res = await apiFetch('/api/auth/mfa/enable', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
         body: JSON.stringify({ code }),
       });
       const json = await res.json();

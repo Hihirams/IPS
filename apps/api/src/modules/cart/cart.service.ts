@@ -199,7 +199,7 @@ export async function getCartWithProducts(
         },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { id: 'desc' },
   });
 
   const priceAlerts: Array<{ productId: string; productName: string; oldPrice: number; newPrice: number }> = [];

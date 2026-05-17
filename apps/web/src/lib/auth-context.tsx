@@ -30,8 +30,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Cookie httpOnly se envía automáticamente; no necesitamos Authorization header
       const res = await fetch('/api/auth/me', { credentials: 'include' });
       const json = await res.json();
-      if (json.success && json.data) {
-        setUser(json.data);
+      if (json.success && json.data?.user) {
+        setUser(json.data.user);
         try {
           await fetchCsrfToken();
         } catch {
