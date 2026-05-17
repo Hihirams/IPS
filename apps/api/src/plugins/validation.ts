@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import type { ZodSchema } from 'zod';
 import { ZodError } from 'zod';
@@ -13,10 +13,10 @@ import type { ValidationErrorResponse } from '@ecommerce/types';
  * En caso de error, responde 400 con mensajes claros SIN exponer detalles internos.
  */
 export default fp(async function validationPlugin(app: FastifyInstance) {
-  app.decorate(
+  app.decorateRequest(
     'validate',
     function (
-      request: FastifyRequest,
+      this: FastifyRequest,
       schema: ZodSchema,
       target: 'body' | 'params' | 'query' = 'body'
     ) {
@@ -24,13 +24,13 @@ export default fp(async function validationPlugin(app: FastifyInstance) {
         let data: unknown;
         switch (target) {
           case 'body':
-            data = request.body;
+            data = this.body;
             break;
           case 'params':
-            data = request.params;
+            data = this.params;
             break;
           case 'query':
-            data = request.query;
+            data = this.query;
             break;
         }
         return schema.parse(data);
@@ -50,7 +50,6 @@ export default fp(async function validationPlugin(app: FastifyInstance) {
             },
           };
 
-          // Lanzar para que Fastify maneje el error
           throw app.httpErrors.badRequest(JSON.stringify(response));
         }
         throw error;

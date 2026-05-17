@@ -13,11 +13,31 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@ecommerce/types": ["../../packages/types/src"],
-      "@ecommerce/ui": ["../../packages/ui/src"]
-    }
+      "@/*": [
+        "./src/*"
+      ],
+      "@ecommerce/types": [
+        "../../packages/types/src"
+      ],
+      "@ecommerce/ui": [
+        "../../packages/ui/src"
+      ]
+    },
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", ".next", "dist"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist"
+  ]
 }

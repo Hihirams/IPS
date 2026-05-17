@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { SafeUser } from '@ecommerce/types';
+import { apiFetch, fetchCsrfToken, clearCsrfToken } from '@/lib/csrf';
 
 interface AuthContextType {
   user: SafeUser | null;
@@ -31,11 +32,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const json = await res.json();
       if (json.success && json.data) {
         setUser(json.data);
+        try {
+          await fetchCsrfToken();
+        } catch {
+          // CSRF se obtendrá en la primera mutación
+        }
       } else {
         setUser(null);
+        clearCsrfToken();
       }
     } catch {
       setUser(null);
+      clearCsrfToken();
     } finally {
       setIsLoading(false);
     }
@@ -52,13 +60,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await apiFetch('/api/auth/logout', { method: 'POST' });
     } catch {
       // Ignorar errores de red
     } finally {
+      clearCsrfToken();
       setUser(null);
     }
   }, []);

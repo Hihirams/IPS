@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { CartWithProducts } from '@ecommerce/types';
+import { apiFetch } from '@/lib/csrf';
 
 interface CartContextType {
   cart: CartWithProducts | null;
@@ -41,10 +42,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     async (productId: string, quantity: number) => {
       setIsLoading(true);
       try {
-        const res = await fetch('/api/cart/items', {
+        const res = await apiFetch('/api/cart/items', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({ productId, quantity }),
         });
         const json = await res.json();
@@ -62,10 +61,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     async (itemId: string, quantity: number) => {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/cart/items/${itemId}`, {
+        const res = await apiFetch(`/api/cart/items/${itemId}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({ quantity }),
         });
         if (res.ok) {
@@ -82,9 +79,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     async (itemId: string) => {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/cart/items/${itemId}`, {
+        const res = await apiFetch(`/api/cart/items/${itemId}`, {
           method: 'DELETE',
-          credentials: 'include',
         });
         if (res.ok) {
           await fetchCart();
@@ -99,9 +95,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const clearCart = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/cart', {
+      const res = await apiFetch('/api/cart', {
         method: 'DELETE',
-        credentials: 'include',
       });
       if (res.ok) {
         setCart(null);

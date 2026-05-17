@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { PaymentForm } from '@/components/payment-form';
 import { AddressForm } from '@/components/address-form';
-import type { CheckoutSummary } from '@ecommerce/types';
+import { apiFetch } from '@/lib/csrf';
+import type { Address, CheckoutSummary } from '@ecommerce/types';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -16,8 +18,9 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
  * 3. Pago con Stripe
  */
 export default function CheckoutPage() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
-  const [addresses, setAddresses] = useState<Array<Record<string, unknown>>>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [summary, setSummary] = useState<CheckoutSummary | null>(null);
@@ -25,21 +28,40 @@ export default function CheckoutPage() {
   const [orderId, setOrderId] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [addressesLoading, setAddressesLoading] = useState(true);
 
-  // Cargar direcciones del usuario
+  const loadAddresses = useCallback(async () => {
+    setAddressesLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/user/addresses', { credentials: 'include' });
+
+      if (res.status === 401) {
+        router.push('/login?redirect=/checkout');
+        return;
+      }
+
+      const json = await res.json();
+      if (json.success) {
+        const list = json.data as Address[];
+        setAddresses(list);
+        const defaultAddr = list.find((a) => a.isDefault) ?? list[0];
+        if (defaultAddr) {
+          setSelectedAddressId(defaultAddr.id);
+        }
+      }
+    } catch {
+      setError('No se pudieron cargar tus direcciones.');
+    } finally {
+      setAddressesLoading(false);
+    }
+  }, [router]);
+
   useEffect(() => {
-    const fetchAddresses = async () => {
-      const res = await fetch('/api/auth/me', {
-        credentials: 'include',
-      });
-      // En un endpoint real, obtendríamos las direcciones del usuario
-      // Por ahora usamos datos de ejemplo
-      setAddresses([]);
-    };
-    fetchAddresses();
-  }, []);
+    loadAddresses();
+  }, [loadAddresses]);
 
-  // Validar carrito
   const handleValidateCart = async () => {
     if (!selectedAddressId) {
       setError('Selecciona una dirección de envío');
@@ -50,13 +72,7 @@ export default function CheckoutPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/checkout/validate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
+      const res = await apiFetch('/api/checkout/validate', { method: 'POST' });
       const json = await res.json();
 
       if (json.success) {
@@ -72,18 +88,13 @@ export default function CheckoutPage() {
     }
   };
 
-  // Crear PaymentIntent
   const handleCreatePaymentIntent = async () => {
     setIsLoading(true);
     setError('');
 
     try {
-      const res = await fetch('/api/checkout/create-payment-intent', {
+      const res = await apiFetch('/api/checkout/create-payment-intent', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
         body: JSON.stringify({
           addressId: selectedAddressId,
           shippingMethod: 'standard',
@@ -105,18 +116,56 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleAddressSubmit = (address: Record<string, unknown>) => {
-    // En una implementación real, enviaría la dirección al backend
-    // y recibiría un addressId
-    const newAddress = { id: `addr_${Date.now()}`, ...address };
-    setAddresses([...addresses, newAddress]);
-    setSelectedAddressId(newAddress.id as string);
-    setShowNewAddressForm(false);
+  const handleAddressSubmit = async (address: {
+    label: Address['label'];
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+    isDefault: boolean;
+  }) => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const res = await apiFetch('/api/user/addresses', {
+        method: 'POST',
+        body: JSON.stringify(address),
+      });
+      const json = await res.json();
+
+      if (json.success) {
+        const created = json.data as Address;
+        await loadAddresses();
+        setSelectedAddressId(created.id);
+        setShowNewAddressForm(false);
+      } else {
+        setError(json.error?.message ?? 'Error al guardar la dirección');
+      }
+    } catch {
+      setError('Error de conexión. Intenta de nuevo.');
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const labelDisplay = (label: Address['label']) => {
+    if (label === 'HOME') return 'Casa';
+    if (label === 'OFFICE') return 'Oficina';
+    return 'Otra';
+  };
+
+  if (addressesLoading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      {/* Progress steps */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           {['Dirección', 'Resumen', 'Pago'].map((label, i) => (
@@ -150,7 +199,6 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      {/* Paso 1: Dirección */}
       {step === 1 && (
         <div className="space-y-6">
           <h2 className="text-xl font-bold text-slate-900">Dirección de Envío</h2>
@@ -159,7 +207,7 @@ export default function CheckoutPage() {
             <div className="space-y-3">
               {addresses.map((addr) => (
                 <label
-                  key={addr.id as string}
+                  key={addr.id}
                   className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${
                     selectedAddressId === addr.id
                       ? 'border-slate-900 bg-slate-50'
@@ -169,16 +217,16 @@ export default function CheckoutPage() {
                   <input
                     type="radio"
                     name="address"
-                    value={addr.id as string}
+                    value={addr.id}
                     checked={selectedAddressId === addr.id}
-                    onChange={() => setSelectedAddressId(addr.id as string)}
+                    onChange={() => setSelectedAddressId(addr.id)}
                     className="mt-1"
                   />
                   <div className="text-sm">
-                    <p className="font-medium text-slate-900">{addr.label as string}</p>
-                    <p className="text-slate-600">{addr.street as string}</p>
+                    <p className="font-medium text-slate-900">{labelDisplay(addr.label)}</p>
+                    <p className="text-slate-600">{addr.street}</p>
                     <p className="text-slate-600">
-                      {addr.city as string}, {addr.state as string} {addr.zipCode as string}
+                      {addr.city}, {addr.state} {addr.zipCode}
                     </p>
                   </div>
                 </label>
@@ -189,7 +237,8 @@ export default function CheckoutPage() {
           {!showNewAddressForm ? (
             <button
               onClick={() => setShowNewAddressForm(true)}
-              className="w-full rounded-lg border-2 border-dashed border-slate-300 py-4 text-sm font-medium text-slate-600 hover:border-slate-400 hover:text-slate-900"
+              disabled={addresses.length >= 5}
+              className="w-full rounded-lg border-2 border-dashed border-slate-300 py-4 text-sm font-medium text-slate-600 hover:border-slate-400 hover:text-slate-900 disabled:opacity-50"
             >
               + Agregar nueva dirección
             </button>
@@ -210,7 +259,6 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      {/* Paso 2: Resumen */}
       {step === 2 && summary && (
         <div className="space-y-6">
           <h2 className="text-xl font-bold text-slate-900">Resumen de la Orden</h2>
@@ -254,7 +302,6 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Alertas */}
           {summary.priceAlerts.length > 0 && (
             <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
               <p className="text-sm font-medium text-yellow-800">⚠ Algunos precios han cambiado</p>
@@ -299,7 +346,6 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      {/* Paso 3: Pago */}
       {step === 3 && clientSecret && (
         <div className="space-y-6">
           <h2 className="text-xl font-bold text-slate-900">Pago Seguro</h2>
@@ -308,6 +354,7 @@ export default function CheckoutPage() {
             <PaymentForm
               clientSecret={clientSecret}
               total={summary?.total ?? 0}
+              returnUrl={`${typeof window !== 'undefined' ? window.location.origin : ''}/pedidos/${orderId}/confirmacion`}
               onSuccess={() => {
                 window.location.href = `/pedidos/${orderId}/confirmacion`;
               }}

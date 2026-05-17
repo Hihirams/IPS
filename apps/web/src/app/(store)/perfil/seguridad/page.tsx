@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import { apiFetch } from '@/lib/csrf';
 
 export default function UserSecurityPage() {
   const { user, refreshUser } = useAuth();
@@ -60,12 +61,8 @@ export default function UserSecurityPage() {
     setChangingPassword(true);
 
     try {
-      const res = await fetch('/api/user/change-password', {
+      const res = await apiFetch('/api/user/change-password', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
         body: JSON.stringify({
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
@@ -88,9 +85,8 @@ export default function UserSecurityPage() {
 
   async function revokeSession(sessionId: string) {
     try {
-      const res = await fetch(`/api/user/sessions/${sessionId}`, {
+      const res = await apiFetch(`/api/user/sessions/${sessionId}`, {
         method: 'DELETE',
-        credentials: 'include',
       });
       if (res.ok) {
         await loadSessions();
@@ -104,9 +100,8 @@ export default function UserSecurityPage() {
     if (!confirm('¿Cerrar todas las demás sesiones? Tendrás que iniciar sesión nuevamente en otros dispositivos.')) return;
 
     try {
-      const res = await fetch('/api/user/sessions', {
+      const res = await apiFetch('/api/user/sessions', {
         method: 'DELETE',
-        credentials: 'include',
       });
       if (res.ok) {
         await loadSessions();
@@ -122,12 +117,8 @@ export default function UserSecurityPage() {
 
     try {
       const url = action === 'enable' ? '/api/auth/mfa/enable' : '/api/auth/mfa/disable';
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
         body: JSON.stringify({ code: mfaCode }),
       });
       const json = await res.json();

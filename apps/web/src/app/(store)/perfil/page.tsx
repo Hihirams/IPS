@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import { apiFetch } from '@/lib/csrf';
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -45,12 +46,8 @@ export default function ProfilePage() {
     setSaving(true);
 
     try {
-      const res = await fetch('/api/user/profile', {
+      const res = await apiFetch('/api/user/profile', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
         body: JSON.stringify({
           name: form.name || undefined,
           phone: form.phone || undefined,

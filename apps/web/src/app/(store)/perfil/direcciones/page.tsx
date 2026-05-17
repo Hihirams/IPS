@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { Address } from '@ecommerce/types';
+import { apiFetch } from '@/lib/csrf';
 
 export default function UserAddressesPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -46,12 +47,8 @@ export default function UserAddressesPage() {
     const method = editingId ? 'PATCH' : 'POST';
 
     try {
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
         body: JSON.stringify(form),
       });
       const json = await res.json();
@@ -72,9 +69,8 @@ export default function UserAddressesPage() {
     if (!confirm('¿Eliminar esta dirección?')) return;
 
     try {
-      const res = await fetch(`/api/user/addresses/${id}`, {
+      const res = await apiFetch(`/api/user/addresses/${id}`, {
         method: 'DELETE',
-        credentials: 'include',
       });
       if (res.ok) {
         await loadAddresses();
@@ -86,12 +82,8 @@ export default function UserAddressesPage() {
 
   async function handleSetDefault(id: string) {
     try {
-      const res = await fetch(`/api/user/addresses/${id}`, {
+      const res = await apiFetch(`/api/user/addresses/${id}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
         body: JSON.stringify({ isDefault: true }),
       });
       if (res.ok) {

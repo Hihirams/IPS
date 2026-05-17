@@ -19,7 +19,7 @@ export default function AdminLayout({
 
     // No autenticado → login
     if (!user) {
-      router.push('/login');
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
 

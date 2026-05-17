@@ -6,6 +6,7 @@ import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 interface PaymentFormProps {
   clientSecret: string;
   total: number;
+  returnUrl?: string;
   onSuccess: () => void;
   onError: (message: string) => void;
 }
@@ -31,7 +32,7 @@ function translateStripeError(error?: { code?: string; message?: string }): stri
  * Stripe renderiza los campos de tarjeta de forma segura.
  * NUNCA tocamos los datos de la tarjeta directamente.
  */
-export function PaymentForm({ clientSecret, total, onSuccess, onError }: PaymentFormProps) {
+export function PaymentForm({ clientSecret, total, returnUrl, onSuccess, onError }: PaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -48,7 +49,9 @@ export function PaymentForm({ clientSecret, total, onSuccess, onError }: Payment
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/pedidos/confirmacion`,
+        return_url:
+          returnUrl ??
+          `${window.location.origin}/pedidos/confirmacion`,
       },
     });
 
