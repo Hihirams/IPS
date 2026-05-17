@@ -1,5 +1,5 @@
 import { prisma } from '../../lib/prisma';
-import type { Decimal } from '@prisma/client/runtime/library';
+import type { Prisma } from '@prisma/client';
 
 /**
  * Servicio de checkout — cálculos de totales, validaciones y reservas de stock.
@@ -76,6 +76,8 @@ export async function validateCart(userId: string): Promise<{
 
   for (const item of cart.items) {
     const product = item.product;
+    const priceAtTime = Number(item.priceAtTime);
+    const currentPrice = Number(product.price);
 
     if (!product.isActive) {
       stockAlerts.push({
@@ -88,12 +90,12 @@ export async function validateCart(userId: string): Promise<{
     }
 
     // Verificar cambio de precio
-    if (item.priceAtTime !== product.price) {
+    if (priceAtTime !== currentPrice) {
       priceAlerts.push({
         productId: product.id,
         productName: product.name,
-        oldPrice: Number(item.priceAtTime),
-        newPrice: Number(product.price),
+        oldPrice: priceAtTime,
+        newPrice: currentPrice,
       });
     }
 
@@ -108,16 +110,15 @@ export async function validateCart(userId: string): Promise<{
       continue;
     }
 
-    const price = Number(product.price);
     validItems.push({
       productId: product.id,
       quantity: item.quantity,
-      unitPrice: price,
+      unitPrice: currentPrice,
       name: product.name,
       sku: product.sku,
     });
 
-    subtotal += price * item.quantity;
+    subtotal += currentPrice * item.quantity;
   }
 
   const shipping = subtotal >= SHIPPING_FREE_THRESHOLD ? 0 : SHIPPING_FLAT;

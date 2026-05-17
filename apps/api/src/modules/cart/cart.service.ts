@@ -206,15 +206,18 @@ export async function getCartWithProducts(
   const stockAlerts: Array<{ productId: string; productName: string; requested: number; available: number }> = [];
 
   const mappedItems = items.map((item) => {
-    const priceChanged = item.priceAtTime !== item.product.price;
+    const priceAtTime = Number(item.priceAtTime);
+    const currentPrice = Number(item.product.price);
+    const comparePrice = item.product.comparePrice === null ? null : Number(item.product.comparePrice);
+    const priceChanged = priceAtTime !== currentPrice;
     const stockShortage = item.quantity > item.product.stock;
 
     if (priceChanged) {
       priceAlerts.push({
         productId: item.product.id,
         productName: item.product.name,
-        oldPrice: Number(item.priceAtTime),
-        newPrice: Number(item.product.price),
+        oldPrice: priceAtTime,
+        newPrice: currentPrice,
       });
     }
 
@@ -230,10 +233,14 @@ export async function getCartWithProducts(
     return {
       id: item.id,
       quantity: item.quantity,
-      priceAtTime: Number(item.priceAtTime),
-      product: item.product,
+      priceAtTime,
+      product: {
+        ...item.product,
+        price: currentPrice,
+        comparePrice,
+      },
       priceChanged,
-      currentPrice: Number(item.product.price),
+      currentPrice,
     };
   });
 

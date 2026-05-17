@@ -1,5 +1,3 @@
-import { env } from 'process';
-
 /**
  * Helper para hacer fetch a la API del backend.
  *
@@ -7,7 +5,8 @@ import { env } from 'process';
  * Incluye revalidación para cache de Next.js.
  */
 
-const API_URL = env.API_URL || 'http://localhost:4000';
+const API_URL = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')
+  .replace(/\/$/, '');
 
 /**
  * Wrapper de fetch para la API del backend.

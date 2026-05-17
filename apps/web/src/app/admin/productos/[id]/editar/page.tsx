@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { apiFetch } from '@/lib/csrf';
-import type { Product } from '@ecommerce/types';
+import type { Brand, Category, Product } from '@ecommerce/types';
 
 const ProductSchema = z.object({
   sku: z.string().min(1).max(100),
@@ -45,13 +45,39 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   });
   const [specs, setSpecs] = useState<SpecEntry[]>([{ key: '', value: '' }]);
   const [images, setImages] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadProduct();
+    loadOptions();
   }, [params.id]);
+
+  async function loadOptions() {
+    try {
+      const [categoriesRes, brandsRes] = await Promise.all([
+        fetch('/api/categories', { credentials: 'include' }),
+        fetch('/api/brands', { credentials: 'include' }),
+      ]);
+      const [categoriesJson, brandsJson] = await Promise.all([
+        categoriesRes.json(),
+        brandsRes.json(),
+      ]);
+
+      if (categoriesJson.success) {
+        setCategories(categoriesJson.data ?? []);
+      }
+
+      if (brandsJson.success) {
+        setBrands(brandsJson.data ?? []);
+      }
+    } catch {
+      // Mantener el formulario usable aunque fallen las listas auxiliares.
+    }
+  }
 
   async function loadProduct() {
     try {
@@ -176,6 +202,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         method: 'PUT',
         body: JSON.stringify({
           ...validation.data,
+          brandId: validation.data.brandId || null,
           description: form.description,
           specs: specsObj,
           images: images.length > 0 ? images : undefined,
@@ -305,6 +332,46 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 />
                 {errors.stock && <p className="mt-1 text-xs text-red-600">{errors.stock}</p>}
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Stock bajo threshold</label>
+                <input
+                  type="number"
+                  value={form.lowStockThreshold}
+                  onChange={(e) => setForm({ ...form, lowStockThreshold: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Categoría</label>
+                <select
+                  value={form.categoryId}
+                  onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+                >
+                  <option value="">Selecciona una categoría</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>{category.name}</option>
+                  ))}
+                </select>
+                {errors.categoryId && <p className="mt-1 text-xs text-red-600">{errors.categoryId}</p>}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Marca</label>
+              <select
+                value={form.brandId}
+                onChange={(e) => setForm({ ...form, brandId: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+              >
+                <option value="">Sin marca</option>
+                {brands.map((brand) => (
+                  <option key={brand.id} value={brand.id}>{brand.name}</option>
+                ))}
+              </select>
             </div>
 
             <div className="flex gap-4">

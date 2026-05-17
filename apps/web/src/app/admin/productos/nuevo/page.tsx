@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { apiFetch } from '@/lib/csrf';
+import type { Brand, Category } from '@ecommerce/types';
 
 const ProductSchema = z.object({
   sku: z.string().min(1, 'SKU requerido').max(100),
@@ -43,8 +44,41 @@ export default function NewProductPage() {
   });
   const [specs, setSpecs] = useState<SpecEntry[]>([{ key: '', value: '' }]);
   const [images, setImages] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadOptions();
+  }, []);
+
+  async function loadOptions() {
+    try {
+      const [categoriesRes, brandsRes] = await Promise.all([
+        fetch('/api/categories', { credentials: 'include' }),
+        fetch('/api/brands', { credentials: 'include' }),
+      ]);
+      const [categoriesJson, brandsJson] = await Promise.all([
+        categoriesRes.json(),
+        brandsRes.json(),
+      ]);
+
+      if (categoriesJson.success) {
+        const list = categoriesJson.data ?? [];
+        setCategories(list);
+        setForm((current) => current.categoryId || !list[0]
+          ? current
+          : { ...current, categoryId: list[0].id });
+      }
+
+      if (brandsJson.success) {
+        setBrands(brandsJson.data ?? []);
+      }
+    } catch {
+      // Las validaciones del formulario mostrarán si falta categoría.
+    }
+  }
 
   const addSpec = () => setSpecs([...specs, { key: '', value: '' }]);
   const removeSpec = (index: number) => setSpecs(specs.filter((_, i) => i !== index));
@@ -134,6 +168,7 @@ export default function NewProductPage() {
         method: 'POST',
         body: JSON.stringify({
           ...validation.data,
+          brandId: validation.data.brandId || null,
           description: form.description,
           specs: specsObj,
           images: images.length > 0 ? images : ['https://res.cloudinary.com/demo/image/upload/sample'],
@@ -267,15 +302,33 @@ export default function NewProductPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700">Categoría ID</label>
-                <input
-                  type="text"
+                <label className="block text-sm font-medium text-slate-700">Categoría</label>
+                <select
                   value={form.categoryId}
                   onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
-                />
+                >
+                  <option value="">Selecciona una categoría</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>{category.name}</option>
+                  ))}
+                </select>
                 {errors.categoryId && <p className="mt-1 text-xs text-red-600">{errors.categoryId}</p>}
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Marca</label>
+              <select
+                value={form.brandId}
+                onChange={(e) => setForm({ ...form, brandId: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+              >
+                <option value="">Sin marca</option>
+                {brands.map((brand) => (
+                  <option key={brand.id} value={brand.id}>{brand.name}</option>
+                ))}
+              </select>
             </div>
 
             <div className="flex gap-4">

@@ -79,7 +79,6 @@ const envSchema = z.object({
 const productionOnlySchema = z.object({
   STRIPE_PUBLISHABLE_KEY: z.string().min(1),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
-  CLOUDINARY_URL: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

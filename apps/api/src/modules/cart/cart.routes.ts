@@ -63,8 +63,13 @@ export async function cartRoutes(app: FastifyInstance) {
   // ==========================================
   app.post('/api/cart/items', { preHandler: [optionalAuth] }, async (request, reply) => {
     const userId = request.user?.id;
-    const sessionId = request.cookies.cart_session_id;
+    let sessionId = request.cookies.cart_session_id;
     const data = request.validate(AddToCartSchema, 'body') as AddToCartInput;
+
+    if (!userId && !sessionId) {
+      sessionId = generateAnonymousSessionId();
+      reply.setCookie('cart_session_id', sessionId, ANONYMOUS_CART_COOKIE);
+    }
 
     const cart = await getOrCreateCart(userId, sessionId);
     const result = await addItemToCart(cart.id, data.productId, data.quantity);

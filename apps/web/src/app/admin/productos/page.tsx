@@ -14,13 +14,12 @@ export default function AdminProductsPage() {
 
   async function loadProducts() {
     try {
-      // Usar la ruta pública de productos para el listado
-      const res = await fetch('/api/products?limit=100', {
+      const res = await fetch('/api/admin/products?limit=100', {
         credentials: 'include',
       });
       const json = await res.json();
       if (json.success) {
-        setProducts(json.data.products ?? []);
+        setProducts(json.data ?? []);
       }
     } catch {
       // Ignorar

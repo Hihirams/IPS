@@ -298,7 +298,32 @@ export async function authRoutes(app: FastifyInstance) {
       // 8. Verificar MFA
       const mfaRequired = await isMFAEnabled(user.id);
 
-      // 9. Generar tokens
+      // 9. Si MFA está habilitado, no setear cookies ni sesión hasta verificar el código.
+      if (mfaRequired) {
+        const mfaToken = app.jwt.sign(
+          { sub: user.id, role: user.role, purpose: 'mfa' },
+          { expiresIn: 5 * 60 }
+        );
+        await app.redis.setex(`mfa_pending:${user.id}`, 5 * 60, mfaToken);
+
+        return reply.status(200).send({
+          success: true,
+          data: {
+            user: {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+              isEmailVerified: user.isEmailVerified,
+              mfaEnabled: user.mfaEnabled,
+            },
+            mfaRequired: true,
+            mfaToken,
+          },
+        });
+      }
+
+      // 10. Generar tokens
       const tokenPair = await generateTokenPair(
         app,
         user.id,
@@ -307,17 +332,17 @@ export async function authRoutes(app: FastifyInstance) {
         ipAddress
       );
 
-      // 10. Setear cookies httpOnly (access + refresh)
+      // 11. Setear cookies httpOnly (access + refresh)
       // SECURITY FIX: accessToken ahora también es httpOnly cookie
       reply.setCookie('accessToken', tokenPair.accessToken, ACCESS_COOKIE_OPTIONS);
       reply.setCookie('refreshToken', tokenPair.refreshToken, REFRESH_COOKIE_OPTIONS);
 
-      // 11. Inicializar sesión de admin si el usuario es ADMIN
+      // 12. Inicializar sesión de admin si el usuario es ADMIN
       if (user.role === 'ADMIN') {
         await initAdminSession(app.redis, user.id);
       }
 
-      // 12. Detectar login desde nuevo dispositivo/IP
+      // 13. Detectar login desde nuevo dispositivo/IP
       const existingSessions = await prisma.session.findMany({
         where: {
           userId: user.id,
@@ -344,7 +369,7 @@ export async function authRoutes(app: FastifyInstance) {
         });
       }
 
-      // 13. Responder
+      // 14. Responder
       // SECURITY FIX: accessToken ya no se envía en el body (es httpOnly cookie)
       const responseData: Record<string, unknown> = {
         user: {
@@ -357,23 +382,6 @@ export async function authRoutes(app: FastifyInstance) {
         },
         expiresIn: 900,
       };
-
-      // Si MFA está habilitado, requerir verificación adicional
-      if (mfaRequired) {
-        // Guardar token temporal MFA en Redis (5 minutos)
-        // Usamos el access token generado como mfa token temporal
-        const mfaToken = tokenPair.accessToken;
-        await app.redis.setex(`mfa_pending:${user.id}`, 5 * 60, mfaToken);
-
-        return reply.status(200).send({
-          success: true,
-          data: {
-            ...responseData,
-            mfaRequired: true,
-            mfaToken,
-          },
-        });
-      }
 
       return reply.status(200).send({
         success: true,
@@ -417,7 +425,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     // Verificar que existe en Redis
     const pending = await app.redis.get(`mfa_pending:${payload.sub}`);
-    if (!pending) {
+    if (!pending || pending !== mfaToken) {
       return reply.status(401).send({
         success: false,
         error: {

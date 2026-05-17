@@ -2,7 +2,7 @@
 # Etapa 1: Dependencias
 # ==========================================
 FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 # Copiar archivos de workspace para instalar dependencias
@@ -20,9 +20,12 @@ RUN npm install -g pnpm@8.15.0 && pnpm install --frozen-lockfile
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+RUN apk add --no-cache openssl
 RUN npm install -g pnpm@8.15.0
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
+COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
 COPY . .
 
 # Generar Prisma Client y compilar
@@ -36,6 +39,9 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV NODE_PATH=/app/apps/api/node_modules:/app/node_modules
+
+RUN apk add --no-cache openssl
 
 # Crear usuario no-root para seguridad
 RUN addgroup --system --gid 1001 nodejs

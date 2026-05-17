@@ -16,8 +16,24 @@ function LoginForm() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaToken, setMfaToken] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  async function finishLogin(user: SafeUser) {
+    login(user);
+    await fetchCsrfToken();
+
+    try {
+      await apiFetch('/api/cart/merge', { method: 'POST' });
+    } catch {
+      // Sin carrito anónimo: continuar
+    }
+
+    router.push(redirectTo);
+    router.refresh();
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,18 +54,47 @@ function LoginForm() {
         return;
       }
 
-      const user = json.data.user as SafeUser;
-      login(user);
-      await fetchCsrfToken();
-
-      try {
-        await apiFetch('/api/cart/merge', { method: 'POST' });
-      } catch {
-        // Sin carrito anónimo: continuar
+      if (json.data?.mfaRequired) {
+        setMfaToken(json.data.mfaToken);
+        setMfaCode('');
+        return;
       }
 
-      router.push(redirectTo);
-      router.refresh();
+      const user = json.data.user as SafeUser;
+      await finishLogin(user);
+    } catch {
+      setError('Error de conexión. Intenta de nuevo.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleMFASubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+
+    if (mfaCode.length !== 6) {
+      setError('Ingresa un código MFA de 6 dígitos.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/mfa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ mfaToken, code: mfaCode }),
+      });
+      const json = await res.json();
+
+      if (!json.success) {
+        setError(json.error?.message ?? 'Código MFA inválido.');
+        return;
+      }
+
+      await finishLogin(json.data.user as SafeUser);
     } catch {
       setError('Error de conexión. Intenta de nuevo.');
     } finally {
@@ -73,6 +118,48 @@ function LoginForm() {
           </p>
         </div>
 
+        {mfaToken ? (
+          <form onSubmit={handleMFASubmit} className="space-y-4">
+            {error && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="mfaCode" className="block text-sm font-medium text-slate-700">
+                Código MFA
+              </label>
+              <input
+                id="mfaCode"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                required
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-center text-2xl tracking-widest focus:border-slate-900 focus:outline-none"
+              />
+            </div>
+
+            <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
+              Verificar y entrar
+            </Button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMfaToken('');
+                setMfaCode('');
+                setError('');
+              }}
+              className="w-full text-sm text-slate-500 hover:text-slate-900"
+            >
+              Usar otra cuenta
+            </button>
+          </form>
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -114,6 +201,7 @@ function LoginForm() {
             Entrar
           </Button>
         </form>
+        )}
 
         <p className="mt-6 text-center">
           <Link href="/" className="text-sm text-slate-500 hover:text-slate-900">

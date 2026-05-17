@@ -322,6 +322,77 @@ export async function productRoutes(app: FastifyInstance) {
   // Rutas de Admin
   // ==========================================
 
+  // GET /api/admin/products — Lista completa para panel admin
+  app.get(
+    '/api/admin/products',
+    { preHandler: [authenticate, requireAdmin, requireMFA, requireAdminSession] },
+    async (request, reply) => {
+      const query = request.query as { page?: string; limit?: string; search?: string };
+      const page = Math.max(1, Number(query.page) || 1);
+      const limit = Math.min(100, Math.max(1, Number(query.limit) || 50));
+      const skip = (page - 1) * limit;
+      const where = query.search
+        ? {
+            OR: [
+              { name: { contains: query.search, mode: 'insensitive' as const } },
+              { sku: { contains: query.search, mode: 'insensitive' as const } },
+            ],
+          }
+        : {};
+
+      const [products, total] = await Promise.all([
+        prisma.product.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            category: { select: { id: true, name: true, slug: true } },
+            brand: { select: { id: true, name: true, slug: true, logo: true } },
+          },
+        }),
+        prisma.product.count({ where }),
+      ]);
+
+      return reply.status(200).send({
+        success: true,
+        data: products,
+        meta: {
+          total,
+          page,
+          pageSize: limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    }
+  );
+
+  // GET /api/admin/products/:id — Detalle para edición admin
+  app.get(
+    '/api/admin/products/:id',
+    { preHandler: [authenticate, requireAdmin, requireMFA, requireAdminSession] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+
+      const product = await prisma.product.findUnique({
+        where: { id },
+        include: {
+          category: { select: { id: true, name: true, slug: true } },
+          brand: { select: { id: true, name: true, slug: true, logo: true } },
+        },
+      });
+
+      if (!product) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: 'PRODUCT_NOT_FOUND', message: 'Producto no encontrado.' },
+        });
+      }
+
+      return reply.status(200).send({ success: true, data: product });
+    }
+  );
+
   // POST /api/admin/products — Crear producto
   app.post(
     '/api/admin/products',
