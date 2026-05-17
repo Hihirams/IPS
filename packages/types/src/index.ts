@@ -150,6 +150,8 @@ export interface ProductDetail extends Product {
   brand: Brand | null;
 }
 
+export type PublicProduct = Omit<Product, 'lowStockThreshold'>;
+
 export interface Category {
   id: string;
   name: string;
