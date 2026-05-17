@@ -706,9 +706,8 @@ export async function authRoutes(app: FastifyInstance) {
   // POST /api/auth/mfa/setup
   app.post('/api/auth/mfa/setup', { preHandler: [authenticate] }, async (request, reply) => {
     const userId = request.user?.id;
-    const userEmail = request.user?.email;
 
-    if (!userId || !userEmail) {
+    if (!userId) {
       return reply.status(401).send({
         success: false,
         error: {
@@ -718,7 +717,22 @@ export async function authRoutes(app: FastifyInstance) {
       });
     }
 
-    const setup = await generateMFASecret(userId, userEmail);
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    if (!user?.email) {
+      return reply.status(404).send({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'Usuario no encontrado.',
+        },
+      });
+    }
+
+    const setup = await generateMFASecret(userId, user.email);
 
     return reply.status(200).send({
       success: true,
