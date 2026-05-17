@@ -39,6 +39,7 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
   const router = useRouter();
   const [order, setOrder] = useState<AdminOrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [newStatus, setNewStatus] = useState<OrderStatus | ''>('');
   const [statusNotes, setStatusNotes] = useState('');
@@ -50,16 +51,36 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
   }, [params.id]);
 
   async function loadOrder() {
+    setLoading(true);
+    setLoadError('');
     try {
       const res = await fetch(`/api/admin/orders/${params.id}`, {
         credentials: 'include',
       });
+      if (res.status === 401) {
+        setLoadError('Sesión expirada. Por favor inicia sesión nuevamente.');
+        return;
+      }
+      if (res.status === 403) {
+        setLoadError('No tienes permisos para ver este pedido.');
+        return;
+      }
+      if (res.status === 404) {
+        setLoadError('Pedido no encontrado.');
+        return;
+      }
+      if (!res.ok) {
+        setLoadError('Error al cargar el pedido. Intenta de nuevo.');
+        return;
+      }
       const json = await res.json();
       if (json.success) {
         setOrder(json.data);
+      } else {
+        setLoadError(json.error?.message ?? 'Error al cargar el pedido.');
       }
     } catch {
-      // Ignorar
+      setLoadError('Error de conexión. Verifica tu red e intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -99,6 +120,30 @@ export default function AdminOrderDetailPage({ params }: { params: { id: string 
     return (
       <div className="flex h-96 items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex h-96 flex-col items-center justify-center gap-3">
+        <p className="text-slate-600">{loadError}</p>
+        {loadError.includes('Sesión expirada') && (
+          <button
+            onClick={() => router.push('/login')}
+            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+          >
+            Iniciar sesión
+          </button>
+        )}
+        {!loadError.includes('Sesión expirada') && (
+          <button
+            onClick={loadOrder}
+            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+          >
+            Reintentar
+          </button>
+        )}
       </div>
     );
   }

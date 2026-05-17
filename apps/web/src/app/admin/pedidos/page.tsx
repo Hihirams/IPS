@@ -29,6 +29,7 @@ const statusColors: Record<string, string> = {
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrderListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | ''>('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -40,6 +41,7 @@ export default function AdminOrdersPage() {
 
   async function loadOrders() {
     setLoading(true);
+    setLoadError('');
 
     const params = new URLSearchParams();
     params.set('page', page.toString());
@@ -51,13 +53,23 @@ export default function AdminOrdersPage() {
       const res = await fetch(`/api/admin/orders?${params}`, {
         credentials: 'include',
       });
+      if (res.status === 401) {
+        setLoadError('Sesión expirada. Por favor inicia sesión nuevamente.');
+        return;
+      }
+      if (!res.ok) {
+        setLoadError('Error al cargar los pedidos. Intenta de nuevo.');
+        return;
+      }
       const json = await res.json();
       if (json.success) {
         setOrders(json.data);
         setTotalPages(json.meta.totalPages);
+      } else {
+        setLoadError(json.error?.message ?? 'Error al cargar los pedidos.');
       }
     } catch {
-      // Ignorar
+      setLoadError('Error de conexión. Verifica tu red e intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -71,6 +83,19 @@ export default function AdminOrdersPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900">Pedidos</h1>
       </div>
+
+      {/* Error banner */}
+      {loadError && (
+        <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-sm text-red-700">{loadError}</p>
+          <button
+            onClick={loadOrders}
+            className="rounded-lg bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-500"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex gap-4">
