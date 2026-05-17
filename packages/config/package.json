@@ -1,0 +1,22 @@
+{
+  "name": "@ecommerce/config",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Configuraciones compartidas: ESLint, Prettier, TypeScript, validación de ENV",
+  "main": "./env.schema.ts",
+  "types": "./env.schema.ts",
+  "exports": {
+    "./eslint": "./eslint/.eslintrc.js",
+    "./prettier": "./prettier/prettier.config.js",
+    "./tsconfig": "./tsconfig/tsconfig.base.json",
+    "./env": "./env.schema.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "@typescript-eslint/eslint-plugin": "^7.1.0",
+    "@typescript-eslint/parser": "^7.1.0",
+    "zod": "^3.22.4"
+  }
+}

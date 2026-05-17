@@ -1,0 +1,29 @@
+# ==========================================
+# Overrides para desarrollo con hot reload
+# Uso: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ==========================================
+
+services:
+  api:
+    build:
+      target: builder
+    command: ["pnpm", "--filter", "@ecommerce/api", "dev"]
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./packages:/app/packages
+      - /app/apps/api/node_modules
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+
+  web:
+    build:
+      target: builder
+    command: ["pnpm", "--filter", "@ecommerce/web", "dev"]
+    volumes:
+      - ./apps/web:/app/apps/web
+      - ./packages:/app/packages
+      - /app/apps/web/node_modules
+      - /app/node_modules
+    environment:
+      NODE_ENV: development

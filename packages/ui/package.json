@@ -1,0 +1,32 @@
+{
+  "name": "@ecommerce/ui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Componentes compartidos de UI (base para shadcn/ui)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "scripts": {
+    "build": "tsc && tailwindcss -i ./src/styles.css -o ./dist/styles.css",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "tailwindcss": "^3.4.1",
+    "postcss": "^8.4.35",
+    "autoprefixer": "^10.4.17",
+    "@ecommerce/config": "workspace:*",
+    "@ecommerce/types": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

@@ -1,0 +1,275 @@
+name: CI/CD Seguro
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+# SECURITY: Nunca exponer secrets en logs
+env:
+  ACTIONS_RUNNER_DEBUG: false
+
+jobs:
+  # ==========================================
+  # Job 1: Security Audit
+  # ==========================================
+  security-audit:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necesario para gitleaks
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # npm audit: falla si hay vulnerabilidades high o critical
+      - name: npm audit
+        run: |
+          pnpm audit --audit-level=high || true
+          # Forzar fallo si hay vulnerabilidades high/critical
+          pnpm audit --audit-level=high --json | node -e "
+            const data = '';
+            process.stdin.on('data', c => data.push(c));
+            process.stdin.on('end', () => {
+              const json = JSON.parse(data.join(''));
+              const high = json.vulnerabilities?.high ?? 0;
+              const critical = json.vulnerabilities?.critical ?? 0;
+              if (high > 0 || critical > 0) {
+                console.error(\`❌ Vulnerabilidades encontradas: ${high} high, ${critical} critical\`);
+                process.exit(1);
+              }
+            });
+          "
+        continue-on-error: false
+
+      # Scan de secretos con gitleaks
+      - name: Scan secrets with gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: false
+
+      # Dependency review (solo en PRs)
+      - name: Dependency Review
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v3
+
+  # ==========================================
+  # Job 2: Lint y Type Checking
+  # ==========================================
+  lint-and-types:
+    name: 📋 Lint & Type Check
+    runs-on: ubuntu-latest
+    needs: security-audit
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: ESLint
+        run: pnpm lint
+
+      - name: TypeScript check
+        run: pnpm tsc --noEmit
+
+  # ==========================================
+  # Job 3: Tests
+  # ==========================================
+  tests:
+    name: 🧪 Tests & Coverage
+    runs-on: ubuntu-latest
+    needs: lint-and-types
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ecommerce_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecommerce_test?schema=public
+      REDIS_URL: redis://localhost:6379/0
+      JWT_SECRET: test_jwt_secret_32_chars_minimum_length
+      JWT_REFRESH_SECRET: test_refresh_secret_32_chars_minimum_length
+      CSRF_SECRET: test_csrf_secret_32_chars_minimum_
+      AES_PHONE_KEY: test_aes_phone_key_32_chars__
+      MFA_SECRET_KEY: test_mfa_secret_key_32_chars__
+      NODE_ENV: test
+      STRIPE_SECRET_KEY: sk_test_xxx
+      STRIPE_WEBHOOK_SECRET: whsec_test_xxx
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Prisma migrations
+        run: |
+          cd apps/api
+          pnpm prisma migrate deploy
+
+      - name: Run tests with coverage
+        run: pnpm test --coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: apps/api/coverage/
+
+  # ==========================================
+  # Job 4: Build
+  # ==========================================
+  build:
+    name: 🔨 Build
+    runs-on: ubuntu-latest
+    needs: [security-audit, lint-and-types, tests]
+    if: always() && needs.security-audit.result == 'success' && needs.lint-and-types.result == 'success' && needs.tests.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build API
+        run: pnpm --filter=api build
+
+      - name: Build Web
+        run: pnpm --filter=web build
+
+      # Verificar que no hay console.log en el build final
+      - name: Check for console.log in build
+        run: |
+          if grep -r "console.log" apps/api/dist apps/web/.next 2>/dev/null; then
+            echo "❌ console.log encontrado en el build. Eliminar antes de deploy."
+            exit 1
+          fi
+          echo "✅ No hay console.log en el build"
+
+  # ==========================================
+  # Job 5: Deploy (solo en push a main)
+  # ==========================================
+  deploy:
+    name: 🚀 Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Deploy a Vercel (frontend)
+      - name: Deploy to Vercel
+        run: |
+          pnpm --filter=web vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      # Deploy API a VPS via SSH
+      - name: Deploy API to VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/ecommerce-api
+            git pull origin main
+            pnpm install --frozen-lockfile
+            pnpm --filter=api build
+            pnpm --filter=api prisma migrate deploy
+            # Restart con PM2 (o systemd)
+            pm2 restart ecosystem.config.js || systemctl restart ecommerce-api
+            # HEALTH CHECK
+            sleep 5
+            curl -f http://localhost:4000/api/health || exit 1
+
+      # Notificar deploy exitoso (sin exponer datos sensibles)
+      - name: Notify deploy success
+        run: |
+          echo "✅ Deploy completado exitosamente"
+          echo "- Frontend: https://ecommercetech.vercel.app"
+          echo "- API: https://api.ecommercetech.com"
