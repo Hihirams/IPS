@@ -112,13 +112,13 @@ export function sanitizeHtml(input: string): string {
 // Validacion de imagenes
 // ==========================================
 
-const CLOUDINARY_REGEX = /^https:\/\/res\.cloudinary\.com\//;
+const IMAGE_URL_REGEX = /^https?:\/\/.+/;
 
 /**
- * Valida que todas las URLs de imagenes sean de Cloudinary.
+ * Valida que todas las URLs de imagenes sean URLs válidas.
  */
 export function validateImageUrls(images: string[]): boolean {
-  return images.every((url) => CLOUDINARY_REGEX.test(url));
+  return images.every((url) => IMAGE_URL_REGEX.test(url));
 }
 
 // ==========================================

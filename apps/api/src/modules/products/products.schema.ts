@@ -4,7 +4,7 @@ import { z } from 'zod';
  * Esquemas Zod para validacion de productos y filtros.
  *
  * Todos los campos monetarios se validan con maximo 2 decimales.
- * Las imagenes deben ser URLs de Cloudinary.
+ * Las imagenes deben ser URLs válidas.
  */
 
 // ==========================================
@@ -12,7 +12,7 @@ import { z } from 'zod';
 // ==========================================
 
 const decimalRegex = /^\d+(\.\d{1,2})?$/;
-const cloudinaryRegex = /^https:\/\/res\.cloudinary\.com\//;
+const imageUrlRegex = /^https?:\/\/.+/;
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 // ==========================================
@@ -56,7 +56,7 @@ const ProductBaseSchema = z.object({
   cost: z.coerce.number().positive('El costo debe ser positivo'),
   stock: z.coerce.number().int().min(0, 'Stock no puede ser negativo').default(0),
   lowStockThreshold: z.coerce.number().int().min(0).default(5),
-  images: z.array(z.string().url().regex(cloudinaryRegex, 'Las imágenes deben ser de Cloudinary')).min(1),
+  images: z.array(z.string().url().regex(imageUrlRegex, 'Las imágenes deben ser URLs válidas')).min(1),
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
   categoryId: z.string().min(1),
@@ -127,7 +127,7 @@ export const CreateCategorySchema = z.object({
   name: z.string().min(1).max(100),
   slug: z.string().regex(slugRegex, 'Slug inválido').optional(),
   description: z.string().max(1000).optional(),
-  image: z.string().url().regex(cloudinaryRegex, 'La imagen debe ser de Cloudinary').optional().nullable(),
+  image: z.string().url().regex(imageUrlRegex, 'La imagen debe ser una URL válida').optional().nullable(),
   parentId: z.string().optional().nullable(),
 });
 
@@ -136,7 +136,7 @@ export type CreateCategoryInput = z.infer<typeof CreateCategorySchema>;
 export const CreateBrandSchema = z.object({
   name: z.string().min(1).max(100),
   slug: z.string().regex(slugRegex, 'Slug inválido').optional(),
-  logo: z.string().url().regex(cloudinaryRegex, 'El logo debe ser de Cloudinary').optional().nullable(),
+  logo: z.string().url().regex(imageUrlRegex, 'El logo debe ser una URL válida').optional().nullable(),
 });
 
 export type CreateBrandInput = z.infer<typeof CreateBrandSchema>;

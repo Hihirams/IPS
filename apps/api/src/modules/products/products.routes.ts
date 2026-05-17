@@ -424,7 +424,7 @@ export async function productRoutes(app: FastifyInstance) {
       if (!validateImageUrls(data.images)) {
         return reply.status(400).send({
           success: false,
-          error: { code: 'INVALID_IMAGES', message: 'Las imagenes deben ser de Cloudinary.' },
+          error: { code: 'INVALID_IMAGES', message: 'Las imagenes deben ser URLs válidas.' },
         });
       }
 
@@ -501,7 +501,7 @@ export async function productRoutes(app: FastifyInstance) {
       if (data.images && !validateImageUrls(data.images)) {
         return reply.status(400).send({
           success: false,
-          error: { code: 'INVALID_IMAGES', message: 'Las imagenes deben ser de Cloudinary.' },
+          error: { code: 'INVALID_IMAGES', message: 'Las imagenes deben ser URLs válidas.' },
         });
       }
 

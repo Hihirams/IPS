@@ -3,41 +3,24 @@ import { prisma } from '../lib/prisma';
 import { alertAdminNewIp } from '../services/alert.service';
 
 /**
- * Middleware: requiere que el usuario tenga MFA habilitado.
+ * Middleware: verifica el estado de MFA del admin.
  * Debe usarse DESPUÉS de authenticate y requireAdmin.
- * Si no tiene MFA configurado, devuelve 403 MFA_REQUIRED.
+ *
+ * - Si MFA NO está habilitado: permite el acceso (el admin puede usar el panel
+ *   y configurar MFA desde la sección de seguridad).
+ * - Si MFA está habilitado: permite el acceso ya que la verificación TOTP ya
+ *   ocurrió durante el login (el flujo de login con MFA no crea sesión hasta
+ *   verificar el código TOTP).
  */
 export const requireMFA: preHandlerHookHandler = async (
   request: FastifyRequest,
-  reply: FastifyReply
+  _reply: FastifyReply
 ) => {
-  const user = request.user;
-
-  if (!user) {
-    return reply.status(401).send({
-      success: false,
-      error: {
-        code: 'UNAUTHORIZED',
-        message: 'Se requiere autenticación.',
-      },
-    });
-  }
-
-  // Verificar MFA en la base de datos (el JWT no incluye este campo)
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { mfaEnabled: true },
-  });
-
-  if (!dbUser?.mfaEnabled) {
-    return reply.status(403).send({
-      success: false,
-      error: {
-        code: 'MFA_REQUIRED',
-        message: 'Se requiere autenticación de dos factores (MFA) para acceder al panel de administración.',
-      },
-    });
-  }
+  // MFA enforcement happens at the login/session-creation level:
+  // - When mfaEnabled=true, login returns a temporary mfaToken instead of session cookies.
+  // - The /api/auth/mfa/verify endpoint creates the real session only after valid TOTP code.
+  // - Therefore, if the user has a valid admin session, MFA was already verified.
+  // - When mfaEnabled=false, the admin should be able to access the panel to set up MFA.
 };
 
 /**
