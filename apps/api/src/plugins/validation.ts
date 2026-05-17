@@ -2,18 +2,27 @@ import type { FastifyInstance, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import type { ZodSchema } from 'zod';
 import { ZodError } from 'zod';
-import type { ValidationErrorResponse } from '@ecommerce/types';
+
+class ValidationError extends Error {
+  statusCode = 400;
+  details: { path: string; message: string }[];
+
+  constructor(details: { path: string; message: string }[]) {
+    super('Los datos enviados no son validos.');
+    this.details = details;
+  }
+}
 
 /**
- * Plugin de validación con Zod para Fastify.
+ * Plugin de validacion con Zod para Fastify.
  *
  * Proporciona el decorator `request.validate(schema, target)`
  * donde target = 'body' | 'params' | 'query'.
  *
  * En caso de error, responde 400 con mensajes claros SIN exponer detalles internos.
  */
-export default fp(async function validationPlugin(app: FastifyInstance) {
-  app.decorateRequest(
+export default fp(async function validationPlugin(_app: FastifyInstance) {
+  _app.decorateRequest(
     'validate',
     function (
       this: FastifyRequest,
@@ -34,25 +43,16 @@ export default fp(async function validationPlugin(app: FastifyInstance) {
             break;
         }
         return schema.parse(data);
-      } catch (error) {
-        if (error instanceof ZodError) {
-          const details = error.issues.map((issue) => ({
+      } catch (err) {
+        if (err instanceof ZodError) {
+          const details = err.issues.map((issue) => ({
             path: issue.path.join('.'),
             message: issue.message,
           }));
 
-          const response: ValidationErrorResponse = {
-            success: false,
-            error: {
-              code: 'VALIDATION_ERROR',
-              message: 'Los datos enviados no son válidos.',
-              details,
-            },
-          };
-
-          throw app.httpErrors.badRequest(JSON.stringify(response));
+          throw new ValidationError(details);
         }
-        throw error;
+        throw err;
       }
     }
   );

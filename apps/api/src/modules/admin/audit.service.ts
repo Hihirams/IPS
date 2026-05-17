@@ -17,6 +17,8 @@ export type AdminAction =
   | 'REFUND_ORDER'
   | 'BAN_USER'
   | 'UPLOAD_IMAGE'
+  | 'APPROVE_REVIEW'
+  | 'DELETE_REVIEW'
   | 'ADMIN_LOGIN';
 
 /**

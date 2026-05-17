@@ -30,7 +30,7 @@ export default fp(async function csrfPlugin(app: FastifyInstance) {
   // ==========================================
   // Ruta GET para obtener token CSRF
   // ==========================================
-  app.get('/api/auth/csrf-token', async (request, reply) => {
+  app.get('/api/auth/csrf-token', async (_request, reply) => {
     const token = crypto.randomBytes(CSRF_TOKEN_LENGTH).toString('hex');
 
     // Setear cookie (NO httpOnly, para que JS pueda leerla)

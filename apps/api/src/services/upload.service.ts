@@ -1,4 +1,4 @@
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 import type { FastifyInstance } from 'fastify';
 import { logAdminAction } from '../modules/admin/audit.service';
 
@@ -46,7 +46,7 @@ export function initCloudinary(app: FastifyInstance): void {
  * Valida y sube una imagen a Cloudinary.
  */
 export async function uploadImage(
-  app: FastifyInstance,
+  _app: FastifyInstance,
   buffer: Buffer,
   filename: string,
   mimeType: string,
@@ -67,7 +67,7 @@ export async function uploadImage(
   const safeFilename = sanitizeFilename(filename);
 
   // 4. Subir a Cloudinary
-  const result = await new Promise<cloudinary.UploadApiResponse>((resolve, reject) => {
+  const result = await new Promise<UploadApiResponse>((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: 'ecommerce/products',

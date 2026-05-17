@@ -49,7 +49,7 @@ export default fp(async function securityPlugin(app: FastifyInstance) {
   // ==========================================
   // 3. CORS
   // ==========================================
-  const corsOrigins = env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean);
+  const corsOrigins = env.CORS_ORIGIN.split(',').map((origin: string) => origin.trim()).filter(Boolean);
 
   await app.register(cors, {
     origin: corsOrigins.length > 1 ? corsOrigins : corsOrigins[0],
@@ -72,11 +72,11 @@ export default fp(async function securityPlugin(app: FastifyInstance) {
     max: 100,
     timeWindow: '1 minute',
     redis: app.redis,
-    keyGenerator: (req) => {
+    keyGenerator: (_req) => {
       // Usar IP real (respeta trustProxy)
-      return req.ip || 'unknown';
+      return _req.ip || 'unknown';
     },
-    errorResponseBuilder: (req, context) => {
+    errorResponseBuilder: (_req, context) => {
       // Incluir header Retry-After
       const retryAfter = Math.ceil(context.ttl / 1000);
       return {
