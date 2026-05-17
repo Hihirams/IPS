@@ -27,6 +27,7 @@ const statusColors: Record<string, string> = {
 export default function UserOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -36,18 +37,25 @@ export default function UserOrdersPage() {
 
   async function loadOrders() {
     setLoading(true);
+    setError('');
 
     try {
       const res = await fetch(`/api/user/orders?page=${page}&pageSize=10`, {
         credentials: 'include',
       });
+      if (res.status === 401) {
+        setError('Debes iniciar sesión para ver tus pedidos.');
+        return;
+      }
       const json = await res.json();
       if (json.success) {
         setOrders(json.data);
         setTotalPages(json.meta.totalPages);
+      } else {
+        setError(json.error?.message ?? 'Error al cargar pedidos.');
       }
     } catch {
-      // Ignorar
+      setError('Error de red. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -69,6 +77,16 @@ export default function UserOrdersPage() {
         {loading ? (
           <div className="flex h-32 items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
+          </div>
+        ) : error ? (
+          <div className="py-16 text-center">
+            <p className="text-red-600">{error}</p>
+            <button
+              onClick={loadOrders}
+              className="mt-4 inline-block rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            >
+              Reintentar
+            </button>
           </div>
         ) : orders.length === 0 ? (
           <div className="py-16 text-center">

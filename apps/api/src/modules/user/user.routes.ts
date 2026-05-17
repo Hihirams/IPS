@@ -124,7 +124,9 @@ export async function userRoutes(app: FastifyInstance) {
     { preHandler: [authenticate], ...USER_RATE_LIMIT },
     async (request, reply) => {
       const userId = request.user!.id;
-      const { page = 1, pageSize = 10 } = request.query as { page?: number; pageSize?: number };
+      const rawQuery = request.query as Record<string, string | undefined>;
+      const page = Math.max(1, Number(rawQuery.page ?? 1));
+      const pageSize = Math.min(100, Math.max(1, Number(rawQuery.pageSize ?? 10)));
 
       const [data, total] = await Promise.all([
         prisma.order.findMany({
@@ -399,7 +401,9 @@ export async function userRoutes(app: FastifyInstance) {
     '/api/products/:productId/reviews',
     async (request, reply) => {
       const { productId } = request.params as { productId: string };
-      const { page = 1, pageSize = 10 } = request.query as { page?: number; pageSize?: number };
+      const rawReviewQuery = request.query as Record<string, string | undefined>;
+      const page = Math.max(1, Number(rawReviewQuery.page ?? 1));
+      const pageSize = Math.min(100, Math.max(1, Number(rawReviewQuery.pageSize ?? 10)));
 
       const result = await getProductReviews(productId, page, pageSize);
 
@@ -427,26 +431,19 @@ export async function userRoutes(app: FastifyInstance) {
       ...USER_RATE_LIMIT,
     },
     async (request, reply) => {
-      const {
-        isApproved,
-        productId,
-        userId,
-        page = 1,
-        pageSize = 20,
-      } = request.query as {
-        isApproved?: string;
-        productId?: string;
-        userId?: string;
-        page?: number;
-        pageSize?: number;
-      };
+      const rawAdminQuery = request.query as Record<string, string | undefined>;
+      const isApproved = rawAdminQuery.isApproved;
+      const productId = rawAdminQuery.productId;
+      const userId = rawAdminQuery.userId;
+      const page = Math.max(1, Number(rawAdminQuery.page ?? 1));
+      const pageSize = Math.min(100, Math.max(1, Number(rawAdminQuery.pageSize ?? 20)));
 
       const result = await getAllReviews({
         isApproved: isApproved !== undefined ? isApproved === 'true' : undefined,
         productId,
         userId,
-        page: Number(page),
-        pageSize: Number(pageSize),
+        page,
+        pageSize,
       });
 
       return reply.status(200).send({

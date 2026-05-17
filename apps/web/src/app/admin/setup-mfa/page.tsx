@@ -14,6 +14,7 @@ export default function AdminSetupMFAPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState<'setup' | 'verify'>('setup');
+  const [qrLoading, setQrLoading] = useState(true);
 
   useEffect(() => {
     if (mfaEnabled) {
@@ -24,6 +25,8 @@ export default function AdminSetupMFAPage() {
   }, [mfaEnabled, router]);
 
   async function generateMFA() {
+    setQrLoading(true);
+    setError('');
     try {
       const res = await apiFetch('/api/auth/mfa/setup', {
         method: 'POST',
@@ -33,9 +36,13 @@ export default function AdminSetupMFAPage() {
         setQrCode(json.data.qrCodeUrl);
         setSecret(json.data.secret);
         setStep('setup');
+      } else {
+        setError(json.error?.message ?? 'Error al generar MFA.');
       }
     } catch {
-      setError('Error al generar MFA. Intenta de nuevo.');
+      setError('Error de red al generar MFA. Intenta de nuevo.');
+    } finally {
+      setQrLoading(false);
     }
   }
 
@@ -88,28 +95,47 @@ export default function AdminSetupMFAPage() {
 
         {step === 'setup' && (
           <div className="space-y-6">
-            <div className="text-center">
-              <p className="mb-4 text-sm text-slate-600">
-                Escanea este código QR con Google Authenticator o cualquier app de autenticación:
-              </p>
-              {qrCode && (
-                <img
-                  src={qrCode}
-                  alt="Código QR para MFA"
-                  className="mx-auto h-48 w-48"
-                />
-              )}
-              <p className="mt-4 text-xs text-slate-500">
-                O ingresa manualmente: <code className="rounded bg-slate-100 px-2 py-1">{secret}</code>
-              </p>
-            </div>
+            {error && !qrLoading && !qrCode ? (
+              <div className="space-y-4 text-center">
+                <p className="text-sm text-red-600">{error}</p>
+                <button
+                  onClick={generateMFA}
+                  className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
+                >
+                  Reintentar
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="text-center">
+                  <p className="mb-4 text-sm text-slate-600">
+                    Escanea este código QR con Google Authenticator o cualquier app de autenticación:
+                  </p>
+                  {qrLoading ? (
+                    <div className="mx-auto flex h-48 w-48 items-center justify-center">
+                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
+                    </div>
+                  ) : (
+                    <img
+                      src={qrCode}
+                      alt="Código QR para MFA"
+                      className="mx-auto h-48 w-48"
+                    />
+                  )}
+                  <p className="mt-4 text-xs text-slate-500">
+                    O ingresa manualmente: <code className="rounded bg-slate-100 px-2 py-1">{secret}</code>
+                  </p>
+                </div>
 
-            <button
-              onClick={() => setStep('verify')}
-              className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
-            >
-              Ya escaneé el código →
-            </button>
+                <button
+                  onClick={() => setStep('verify')}
+                  disabled={qrLoading}
+                  className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+                >
+                  Ya escaneé el código →
+                </button>
+              </>
+            )}
           </div>
         )}
 
