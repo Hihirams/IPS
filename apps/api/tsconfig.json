@@ -1,5 +1,4 @@
 {
-  "extends": "../../packages/config/tsconfig/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
     "target": "ES2022",
@@ -11,6 +10,9 @@
     "declarationMap": true,
     "sourceMap": true,
     "skipLibCheck": true,
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "types": ["node"]
   },
   "include": ["src/**/*"],
