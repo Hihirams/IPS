@@ -23,6 +23,7 @@ await build({
     'dotenv',
     'uuid',
     'jsdom',
+    'isomorphic-dompurify',
   ],
 });
 
