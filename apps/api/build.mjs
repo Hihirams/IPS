@@ -22,6 +22,7 @@ await build({
     'zod',
     'dotenv',
     'uuid',
+    'jsdom',
   ],
 });
 
