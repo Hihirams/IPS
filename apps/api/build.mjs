@@ -1,32 +1,28 @@
 import { build } from 'esbuild';
-import { readdir, stat } from 'fs/promises';
-import { join } from 'path';
-
-async function getEntryPoints(dir, basePath = dir) {
-  const entries = [];
-  const items = await readdir(dir, { withFileTypes: true });
-  for (const item of items) {
-    const fullPath = join(dir, item.name);
-    if (item.isDirectory()) {
-      entries.push(...await getEntryPoints(fullPath, basePath));
-    } else if (item.name.endsWith('.ts') && !item.name.endsWith('.d.ts')) {
-      entries.push(fullPath);
-    }
-  }
-  return entries;
-}
-
-const entryPoints = await getEntryPoints('./src');
 
 await build({
-  entryPoints,
+  entryPoints: ['./src/index.ts'],
   outdir: './dist',
-  bundle: false,
+  bundle: true,
   format: 'cjs',
   platform: 'node',
   target: 'node20',
   sourcemap: true,
   keepNames: true,
+  external: [
+    '@prisma/client',
+    '@prisma/extension-omit',
+    'fastify',
+    '@fastify/*',
+    'bcryptjs',
+    'otplib',
+    'qrcode',
+    'stripe',
+    'ioredis',
+    'zod',
+    'dotenv',
+    'uuid',
+  ],
 });
 
-console.log(`Built ${entryPoints.length} files to ./dist`);
+console.log('Built ./dist/index.js');

@@ -2,7 +2,7 @@ import { prisma } from '../../lib/prisma';
 import { revokeAllUserSessions } from '../auth/jwt.service';
 import type { FastifyInstance } from 'fastify';
 import { logAdminAction } from './audit.service';
-import { notifyAccountBanned } from '../../services/email.service';
+import { sendAccountBannedNotification } from '../../services/email.service';
 import { revokeAdminSession } from '../../middleware/admin-auth.middleware';
 
 /**
@@ -202,7 +202,7 @@ export async function banUser(
   );
 
   // Notificar al usuario
-  await notifyAccountBanned(app, {
+  await sendAccountBannedNotification(app, {
     userEmail: user.email,
     userName: user.name,
     reason,

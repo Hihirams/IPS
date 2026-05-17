@@ -1,7 +1,7 @@
 import { prisma } from '../../lib/prisma';
 import type { FastifyInstance } from 'fastify';
 import { logAdminAction } from './audit.service';
-import { notifyOrderStatusChange } from '../../services/email.service';
+import { sendOrderStatusChange } from '../../services/email.service';
 import Stripe from 'stripe';
 
 /**
@@ -283,7 +283,7 @@ export async function updateOrderStatus(
   );
 
   // Notificar al usuario
-  await notifyOrderStatusChange(app, {
+  await sendOrderStatusChange(app, {
     userEmail: order.user.email,
     userName: order.user.name,
     orderNumber: order.orderNumber,
