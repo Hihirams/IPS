@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { SearchBar } from '@/components/search-bar';
 import { CartProvider, useCart } from '@/components/cart-provider';
@@ -17,7 +18,9 @@ function Header() {
         </Link>
 
         <div className="hidden flex-1 px-8 md:block">
-          <SearchBar />
+          <Suspense fallback={null}>
+            <SearchBar />
+          </Suspense>
         </div>
 
         <nav className="flex items-center gap-6">

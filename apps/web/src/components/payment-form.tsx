@@ -32,7 +32,7 @@ function translateStripeError(error?: { code?: string; message?: string }): stri
  * Stripe renderiza los campos de tarjeta de forma segura.
  * NUNCA tocamos los datos de la tarjeta directamente.
  */
-export function PaymentForm({ clientSecret, total, returnUrl, onSuccess, onError }: PaymentFormProps) {
+export function PaymentForm({ total, returnUrl, onSuccess, onError }: PaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);

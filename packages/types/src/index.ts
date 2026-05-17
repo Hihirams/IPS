@@ -150,7 +150,28 @@ export interface ProductDetail extends Product {
   brand: Brand | null;
 }
 
-export type PublicProduct = Omit<Product, 'lowStockThreshold'>;
+export type StockStatus = 'available' | 'low_stock' | 'out_of_stock';
+
+export interface PublicProduct extends Omit<Product, 'lowStockThreshold' | 'stock'> {
+  stockStatus: StockStatus;
+  category?: Pick<Category, 'id' | 'name' | 'slug'>;
+  brand?: Pick<Brand, 'id' | 'name' | 'slug' | 'logo'> | null;
+  reviewSummary?: {
+    averageRating: number;
+    totalReviews: number;
+  };
+}
+
+export interface PublicProductDetail extends PublicProduct {
+  reviews: Array<{
+    id: string;
+    rating: number;
+    title: string;
+    body: string;
+    user: { name: string | null };
+    createdAt: Date;
+  }>;
+}
 
 export interface Category {
   id: string;
@@ -193,6 +214,17 @@ export interface Cart {
   sessionId: string | null;
   items: CartItem[];
   updatedAt: Date;
+}
+
+export interface CartProduct {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  comparePrice: number | null;
+  stock: number;
+  images: string[];
+  brand: Pick<Brand, 'name'> | null;
 }
 
 // ==========================================
@@ -526,7 +558,7 @@ export interface CartWithProducts {
     id: string;
     quantity: number;
     priceAtTime: number;
-    product: PublicProduct;
+    product: CartProduct;
     priceChanged: boolean;
     currentPrice: number;
   }>;

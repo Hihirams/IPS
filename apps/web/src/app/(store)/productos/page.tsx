@@ -104,11 +104,13 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       <div className="flex flex-col gap-8 lg:flex-row">
         {/* Sidebar de filtros */}
         <aside className="w-full shrink-0 lg:w-64">
-          <FilterSidebar
-            categories={categories}
-            brands={brands}
-            searchParams={params}
-          />
+          <Suspense fallback={null}>
+            <FilterSidebar
+              categories={categories}
+              brands={brands}
+              searchParams={params}
+            />
+          </Suspense>
         </aside>
 
         {/* Grid de productos */}

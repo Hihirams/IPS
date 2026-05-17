@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 /**
@@ -16,6 +16,7 @@ export function SearchBar() {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('busqueda') ?? '');
   const [isFocused, setIsFocused] = useState(false);
+  const hasUserEditedQuery = useRef(false);
 
   const performSearch = useCallback(
     (value: string) => {
@@ -33,11 +34,15 @@ export function SearchBar() {
 
   // Debounce de 400ms
   useEffect(() => {
+    if (!hasUserEditedQuery.current) {
+      return;
+    }
+
     const timer = setTimeout(() => {
       performSearch(query);
     }, 400);
     return () => clearTimeout(timer);
-  }, [query, performSearch]);
+  }, [query]);
 
   // Ctrl+K / Cmd+K para focus
   useEffect(() => {
@@ -46,7 +51,8 @@ export function SearchBar() {
         e.preventDefault();
         document.getElementById('search-input')?.focus();
       }
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && query) {
+        hasUserEditedQuery.current = true;
         setQuery('');
         performSearch('');
       }
@@ -76,7 +82,10 @@ export function SearchBar() {
         id="search-input"
         type="text"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          hasUserEditedQuery.current = true;
+          setQuery(e.target.value);
+        }}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         placeholder="Buscar productos..."
@@ -85,6 +94,7 @@ export function SearchBar() {
       {query && (
         <button
           onClick={() => {
+            hasUserEditedQuery.current = true;
             setQuery('');
             performSearch('');
           }}

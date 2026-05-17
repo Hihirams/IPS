@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context';
 import { apiFetch } from '@/lib/csrf';
 
 export default function ProfilePage() {
-  const { user, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const [profile, setProfile] = useState<{
     id: string;
     email: string;

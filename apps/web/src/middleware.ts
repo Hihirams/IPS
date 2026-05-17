@@ -18,7 +18,7 @@ import type { NextRequest } from 'next/server';
 // Para obtener: curl -s https://js.stripe.com/v3/ | openssl dgst -sha384 -binary | openssl base64
 const STRIPE_JS_SRI = "'sha384-OTB72Jt9fd6GDztWrR5J8W1qXWJGkKGrGV2hNJlWl+A0YMS+3+iwcOJ5mW2U5P3O'";
 
-export function middleware(request: NextRequest) {
+export function middleware(_request: NextRequest) {
   const response = NextResponse.next();
 
   // ==========================================

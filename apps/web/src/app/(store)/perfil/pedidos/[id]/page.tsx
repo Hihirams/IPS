@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import type { OrderDetail, OrderStatus } from '@ecommerce/types';
+import type { OrderDetail } from '@ecommerce/types';
 
 const statusLabels: Record<string, string> = {
   PENDING: 'Pendiente',
@@ -26,7 +25,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function UserOrderDetailPage({ params }: { params: { id: string } }) {
-  const router = useRouter();
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [reviewModal, setReviewModal] = useState<string | null>(null);

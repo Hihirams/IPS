@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ProductCard } from '@/components/product-card';
 import { api } from '@/lib/api';
-import type { PublicProduct } from '@ecommerce/types';
+import type { Category, PublicProduct } from '@ecommerce/types';
 
 /**
  * Página principal del ecommerce.
@@ -13,6 +13,10 @@ import type { PublicProduct } from '@ecommerce/types';
 // Revalidar cada 5 minutos
 export const revalidate = 300;
 
+type HomeCategory = Pick<Category, 'id' | 'name' | 'slug' | 'image'> & {
+  _count?: { products?: number };
+};
+
 async function getFeaturedProducts(): Promise<PublicProduct[]> {
   try {
     const res = await api('/api/products?isFeatured=true&limit=8');
@@ -23,11 +27,11 @@ async function getFeaturedProducts(): Promise<PublicProduct[]> {
   }
 }
 
-async function getCategories() {
+async function getCategories(): Promise<HomeCategory[]> {
   try {
     const res = await api('/api/categories');
     const json = await res.json();
-    return json.data ?? [];
+    return (json.data ?? []) as HomeCategory[];
   } catch {
     return [];
   }
@@ -74,17 +78,17 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-4 py-16">
         <h2 className="text-2xl font-bold text-slate-900">Categorías</h2>
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((cat: Record<string, unknown>) => (
+          {categories.map((cat) => (
             <Link
-              key={cat.id as string}
+              key={cat.id}
               href={`/productos?categoria=${cat.slug}`}
               className="group relative overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md"
             >
               <div className="aspect-[4/3] bg-slate-100">
                 {cat.image ? (
                   <img
-                    src={cat.image as string}
-                    alt={cat.name as string}
+                    src={cat.image}
+                    alt={cat.name}
                     className="h-full w-full object-cover transition group-hover:scale-105"
                   />
                 ) : (
@@ -106,7 +110,7 @@ export default async function HomePage() {
                 )}
               </div>
               <div className="p-4">
-                <h3 className="text-lg font-semibold text-slate-900">{cat.name as string}</h3>
+                <h3 className="text-lg font-semibold text-slate-900">{cat.name}</h3>
                 <p className="mt-1 text-sm text-slate-600">
                   {cat._count?.products ?? 0} productos
                 </p>
