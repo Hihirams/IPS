@@ -194,6 +194,7 @@ export async function getCartWithProducts(
           comparePrice: true,
           stock: true,
           images: true,
+          syscomId: true,
           brand: { select: { name: true } },
           isActive: true,
         },

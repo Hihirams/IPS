@@ -4,6 +4,9 @@
   "private": true,
   "description": "Backend API de ecommerce - Fastify + TypeScript + Prisma",
   "main": "./dist/index.js",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "build": "node build.mjs",
     "dev": "tsx watch src/index.ts",
@@ -18,7 +21,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "sync:catalog": "tsx src/scripts/sync-full-catalog.ts",
+    "sync:catalog:images": "tsx src/scripts/sync-full-catalog.ts --skip-categories --skip-brands --enrich-images"
   },
   "dependencies": {
     "@ecommerce/config": "workspace:*",
@@ -38,12 +43,15 @@
     "dotenv": "^16.4.5",
     "fastify": "^4.26.0",
     "fastify-plugin": "^4.5.1",
+    "ioredis": "^5.3.2",
     "isomorphic-dompurify": "^2.13.0",
     "otplib": "^12.0.1",
     "pino": "^8.18.0",
     "pino-pretty": "^10.3.1",
     "prisma": "5.22.0",
     "qrcode": "^1.5.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "resend": "^3.0.0",
     "stripe": "^14.19.0",
     "zod": "^3.22.4"

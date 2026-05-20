@@ -128,6 +128,7 @@ export interface SessionInfo {
 export interface Product {
   id: string;
   sku: string;
+  syscomId: string | null;
   name: string;
   slug: string;
   description: string;
@@ -139,6 +140,9 @@ export interface Product {
   images: string[];
   isActive: boolean;
   isFeatured: boolean;
+  satKey: string | null;
+  originalLink: string | null;
+  lastSyncedAt: Date | null;
   categoryId: string;
   brandId: string | null;
   createdAt: Date;
@@ -175,12 +179,14 @@ export interface PublicProductDetail extends PublicProduct {
 
 export interface Category {
   id: string;
+  syscomId: string | null;
   name: string;
   slug: string;
   description: string | null;
   image: string | null;
   parentId: string | null;
   isActive: boolean;
+  level: number;
 }
 
 export interface CategoryWithProducts extends Category {
@@ -189,6 +195,7 @@ export interface CategoryWithProducts extends Category {
 
 export interface Brand {
   id: string;
+  syscomId: string | null;
   name: string;
   slug: string;
   logo: string | null;
@@ -330,6 +337,7 @@ export interface AdminAuditLog {
 
 export interface CreateProductDTO {
   sku: string;
+  syscomId?: string;
   name: string;
   slug: string;
   description: string;
@@ -342,6 +350,8 @@ export interface CreateProductDTO {
   images: string[];
   isActive?: boolean;
   isFeatured?: boolean;
+  satKey?: string;
+  originalLink?: string;
   categoryId: string;
   brandId?: string;
 }
@@ -360,6 +370,8 @@ export interface UpdateProductDTO {
   images?: string[];
   isActive?: boolean;
   isFeatured?: boolean;
+  satKey?: string;
+  originalLink?: string;
   categoryId?: string;
   brandId?: string;
 }
@@ -771,3 +783,53 @@ export type DeepPartial<T> = {
 export type DecimalToNumber<T> = {
   [K in keyof T]: T[K] extends { toNumber: () => number } ? number : T[K];
 };
+
+// ==========================================
+// Tipos de Sincronización SYSCOM
+// ==========================================
+
+export type SyncEntityType = 'CATEGORIES' | 'BRANDS' | 'PRODUCTS' | 'EXCHANGE_RATE';
+export type SyncStatus = 'RUNNING' | 'COMPLETED' | 'FAILED';
+
+export interface SyncLog {
+  id: string;
+  entityType: SyncEntityType;
+  status: SyncStatus;
+  recordsProcessed: number;
+  recordsCreated: number;
+  recordsUpdated: number;
+  recordsSkipped: number;
+  errorMessage: string | null;
+  startedAt: Date;
+  completedAt: Date | null;
+  triggeredBy: string | null;
+}
+
+export interface SyncStats {
+  processed: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: string[];
+}
+
+export interface SyncStatusResponse {
+  categories: {
+    total: number;
+    withSyscomId: number;
+  };
+  brands: {
+    total: number;
+    withSyscomId: number;
+  };
+  products: {
+    total: number;
+    active: number;
+    withSyscomId: number;
+  };
+  lastSync: {
+    categories: { status: string; completedAt: Date | null } | null;
+    brands: { status: string; completedAt: Date | null } | null;
+    products: { status: string; completedAt: Date | null } | null;
+  };
+}

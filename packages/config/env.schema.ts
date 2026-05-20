@@ -68,6 +68,10 @@ const envSchema = z.object({
   // Hash SHA-384 de stripe.js para monitoreo de integridad (anti-Magecart)
   STRIPE_JS_HASH: z.string().optional(),
 
+  // SYSCOM API (proveedor de catalogo)
+  SYSCOM_CLIENT_ID: z.string().min(1, 'SYSCOM_CLIENT_ID es obligatorio'),
+  SYSCOM_CLIENT_SECRET: z.string().min(1, 'SYSCOM_CLIENT_SECRET es obligatorio'),
+
   // Variables requeridas solo si estamos en producción
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),

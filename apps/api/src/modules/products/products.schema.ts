@@ -59,6 +59,8 @@ const ProductBaseSchema = z.object({
   images: z.array(z.string().url().regex(imageUrlRegex, 'Las imágenes deben ser URLs válidas')).min(1),
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
+  satKey: z.string().optional().nullable(),
+  originalLink: z.string().url().optional().nullable(),
   categoryId: z.string().min(1),
   brandId: z.string().optional().nullable(),
 });

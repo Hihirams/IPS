@@ -109,7 +109,7 @@ export async function verifyMFACode(userId: string, code: string): Promise<boole
   }
 
   const secret = decryptMfaSecret(user.mfaSecret);
-  return authenticator.verify({ token: code, secret, window: 1 });
+  return authenticator.verify({ token: code, secret, window: 1 } as Parameters<typeof authenticator.verify>[0]);
 }
 
 // ==========================================
@@ -127,7 +127,8 @@ export async function enableMFA(userId: string, code: string): Promise<boolean> 
   }
 
   const secret = decryptMfaSecret(user.mfaSecret);
-  const isValid = authenticator.verify({ token: code, secret, window: 1 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isValid = authenticator.verify({ token: code, secret, window: 1 } as any);
 
   if (!isValid) {
     return false;
@@ -156,7 +157,8 @@ export async function disableMFA(userId: string, code: string): Promise<boolean>
   }
 
   const secret = decryptMfaSecret(user.mfaSecret);
-  const isValid = authenticator.verify({ token: code, secret, window: 1 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isValid = authenticator.verify({ token: code, secret, window: 1 } as any);
 
   if (!isValid) {
     return false;

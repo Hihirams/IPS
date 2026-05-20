@@ -127,7 +127,7 @@ export async function adminRoutes(app: FastifyInstance) {
         ipAddress,
       });
 
-      if (!result.success) {
+      if (result.success === false) {
         return reply.status(400).send({
           success: false,
           error: { code: 'INVALID_STATUS_TRANSITION', message: result.error },

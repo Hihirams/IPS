@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
 
 import Fastify from 'fastify';
 import jwt from '@fastify/jwt';
@@ -21,6 +22,7 @@ import { orderRoutes } from './modules/orders/order.routes';
 import { adminRoutes } from './modules/admin/admin.routes';
 import { userRoutes } from './modules/user/user.routes';
 import { gdprRoutes } from './modules/gdpr/gdpr.routes';
+import { syncRoutes } from './modules/sync/sync.routes';
 import { sentryPlugin } from './services/monitoring.service';
 import { startStripeIntegrityCron } from './services/script-integrity.service';
 
@@ -119,6 +121,7 @@ async function bootstrap() {
   await app.register(adminRoutes);
   await app.register(userRoutes);
   await app.register(gdprRoutes);
+  await app.register(syncRoutes);
 
   // ==========================================
   // Manejo de errores global

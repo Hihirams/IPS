@@ -93,8 +93,26 @@ Esto levanta:
 | `PORT` | No | Puerto del API (default: 4000) |
 | `RATE_LIMIT_WINDOW_MS` | No | Ventana de rate limiting en ms (default: 900000) |
 | `RATE_LIMIT_MAX` | No | Máximo de requests por ventana (default: 100) |
+| `SYSCOM_CLIENT_ID` | Sí | Client ID OAuth SYSCOM (catálogo proveedor) |
+| `SYSCOM_CLIENT_SECRET` | Sí | Client secret OAuth SYSCOM |
 
 > *Requeridas en producción.
+
+## Sincronización SYSCOM (catálogo)
+
+Proveedor: [SYSCOM API](https://developers.syscom.mx/). El backend sincroniza categorías, marcas y productos hacia PostgreSQL.
+
+**Alcance:** `POST /api/admin/sync/all` ejecuta categorías → marcas → productos. La API SYSCOM exige `categoria`, `marca` o `busqueda` en `/productos`; el sync **recorre cada categoría local con `syscomId`** (deduplica productos repetidos). Opcional: `POST /api/admin/sync/products` con `{ "categoryId": "<syscom_id>" }` para una sola categoría.
+
+**Requisitos:** Redis (token OAuth), migración `0003_syscom_catalog_sync`, usuario ADMIN con MFA y sesión admin activa.
+
+```bash
+pnpm db:migrate
+pnpm dev
+# Luego (con sesión admin): POST http://localhost:4000/api/admin/sync/all
+```
+
+Endpoints: `GET /api/admin/sync/status`, `GET /api/admin/sync/logs`, `POST /api/admin/sync/categories|brands|products|all`.
 
 ## Comandos Útiles
 

@@ -1,4 +1,6 @@
 import { prisma } from '../../lib/prisma';
+import { Prisma } from '@prisma/client';
+import type { CreateAddressInput, UpdateAddressInput } from './user.schema';
 
 /**
  * Servicio de direcciones del usuario.
@@ -36,15 +38,7 @@ export async function getAddressById(addressId: string, userId: string) {
  */
 export async function createAddress(
   userId: string,
-  data: {
-    label: string;
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-    isDefault?: boolean;
-  }
+  data: CreateAddressInput
 ): Promise<{ success: boolean; address?: unknown; error?: string }> {
   // Verificar límite
   const count = await prisma.address.count({ where: { userId } });
@@ -56,8 +50,11 @@ export async function createAddress(
   }
 
   const result = await prisma.$transaction(async (tx) => {
+    const country = data.country ?? 'MX';
+    const wantsDefault = data.isDefault ?? false;
+
     // Si es default, desmarcar las demás
-    if (data.isDefault) {
+    if (wantsDefault) {
       await tx.address.updateMany({
         where: { userId, isDefault: true },
         data: { isDefault: false },
@@ -65,17 +62,17 @@ export async function createAddress(
     }
 
     // Si es la primera dirección, forzar como default
-    const shouldBeDefault = data.isDefault || count === 0;
+    const shouldBeDefault = wantsDefault || count === 0;
 
     const address = await tx.address.create({
       data: {
         userId,
-        label: data.label as 'HOME' | 'OFFICE' | 'OTHER',
+        label: data.label,
         street: data.street,
         city: data.city,
         state: data.state,
         zipCode: data.zipCode,
-        country: data.country,
+        country,
         isDefault: shouldBeDefault,
       },
     });
@@ -94,15 +91,7 @@ export async function createAddress(
 export async function updateAddress(
   addressId: string,
   userId: string,
-  data: Partial<{
-    label: string;
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-    isDefault: boolean;
-  }>
+  data: UpdateAddressInput
 ): Promise<{ success: boolean; address?: unknown; error?: string }> {
   const existing = await prisma.address.findFirst({
     where: { id: addressId, userId },
@@ -123,7 +112,7 @@ export async function updateAddress(
 
     const address = await tx.address.update({
       where: { id: addressId },
-      data,
+      data: data as Prisma.AddressUncheckedUpdateInput,
     });
 
     return address;

@@ -41,10 +41,11 @@ export const CreateAddressSchema = z.object({
   city: z.string().min(1).max(100),
   state: z.string().min(1).max(100),
   zipCode: z.string().min(1).max(20),
-  country: z.string().min(1).max(100).default('MX'),
-  isDefault: z.boolean().default(false),
+  country: z.string().min(1).max(100).optional(),
+  isDefault: z.boolean().optional(),
 });
 
+/** Parsed body after Zod validation (defaults applied in address.service). */
 export type CreateAddressInput = z.infer<typeof CreateAddressSchema>;
 
 export const UpdateAddressSchema = CreateAddressSchema.partial();

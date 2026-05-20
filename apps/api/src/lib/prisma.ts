@@ -1,5 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 
+type PrismaClientWithOmit = PrismaClient<{
+  omit: {
+    user: {
+      passwordHash: true;
+    };
+  };
+}>;
+
 /**
  * Prisma Client con configuración de seguridad.
  *
@@ -10,7 +18,7 @@ import { PrismaClient } from '@prisma/client';
  */
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+  prisma: PrismaClientWithOmit | undefined;
 };
 
 export const prisma = globalForPrisma.prisma ??
@@ -20,7 +28,7 @@ export const prisma = globalForPrisma.prisma ??
         passwordHash: true,
       },
     },
-  });
+  }) as PrismaClientWithOmit;
 
 // En desarrollo, preservar la instancia para evitar múltiples conexiones (hot reload)
 if (process.env.NODE_ENV !== 'production') {

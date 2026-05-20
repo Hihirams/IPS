@@ -1,22 +1,16 @@
 import type { FastifyRequest, FastifyReply, preHandlerHookHandler } from 'fastify';
-import type { Role } from '@ecommerce/types';
+import { Role } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 
 /**
  * Usuario autenticado adjunto a la request.
+ * El tipo se declara en src/types/fastify.d.ts via FastifyJWT merging.
  */
 export interface AuthenticatedUser {
   id: string;
   email: string;
   role: Role;
   sessionId?: string;
-}
-
-// Extend FastifyRequest types
-declare module 'fastify' {
-  interface FastifyRequest {
-    user?: AuthenticatedUser;
-  }
 }
 
 /**

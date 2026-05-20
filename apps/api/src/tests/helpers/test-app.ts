@@ -117,7 +117,7 @@ export async function generateTestToken(
   return app.jwt.sign({
     sub: userId,
     email: 'test@example.com',
-    role,
+    role: role as import('@prisma/client').Role,
     sessionId: sessionId ?? 'test-session-id',
   });
 }

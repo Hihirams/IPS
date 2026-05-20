@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import type { FastifyInstance } from 'fastify';
 import { prisma } from '../../lib/prisma';
 import { CacheService } from '../../services/cache.service';
@@ -442,7 +443,7 @@ export async function productRoutes(app: FastifyInstance) {
           name: sanitizedName,
           slug,
           description: sanitizedDescription,
-          specs: data.specs ?? {},
+          specs: (data.specs ?? {}) as Prisma.InputJsonValue,
           price: data.price,
           comparePrice: data.comparePrice ?? null,
           cost: data.cost,
@@ -521,7 +522,7 @@ export async function productRoutes(app: FastifyInstance) {
           ...(data.sku && { sku: data.sku }),
           ...(sanitizedName && { name: sanitizedName }),
           ...(sanitizedDescription && { description: sanitizedDescription }),
-          ...(data.specs && { specs: data.specs }),
+          ...(data.specs && { specs: data.specs as Prisma.InputJsonValue }),
           ...(data.price !== undefined && { price: data.price }),
           ...(data.comparePrice !== undefined && { comparePrice: data.comparePrice }),
           ...(data.cost !== undefined && { cost: data.cost }),

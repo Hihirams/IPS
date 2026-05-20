@@ -1,4 +1,4 @@
-import type { FastifyRequest, FastifyReply, preHandlerHookHandler } from 'fastify';
+import type { FastifyInstance, FastifyRequest, FastifyReply, preHandlerHookHandler } from 'fastify';
 import { prisma } from '../lib/prisma';
 import { alertAdminNewIp } from '../services/alert.service';
 
@@ -96,7 +96,7 @@ export const requireAdminSession: preHandlerHookHandler = async (
  * Llamar esto cuando un admin inicia sesión exitosamente.
  */
 export async function initAdminSession(
-  redis: import('ioredis').Redis,
+  redis: FastifyInstance['redis'],
   userId: string
 ): Promise<void> {
   await redis.set(`admin_session:${userId}`, Date.now().toString(), 'EX', 30 * 60);
@@ -107,7 +107,7 @@ export async function initAdminSession(
  * Llamar esto cuando un admin cierra sesión o es baneado.
  */
 export async function revokeAdminSession(
-  redis: import('ioredis').Redis,
+  redis: FastifyInstance['redis'],
   userId: string
 ): Promise<void> {
   await redis.del(`admin_session:${userId}`);

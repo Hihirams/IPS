@@ -1,8 +1,9 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import Stripe from 'stripe';
 import { authenticate } from '../../middleware/auth.middleware';
 import { CreatePaymentIntentSchema } from './checkout.schema';
 import type { CreatePaymentIntentInput } from './checkout.schema';
-import { validateCart, createOrder, reserveStock, releaseStock } from './checkout.service';
+import { validateCart, createOrder, reserveStock, releaseStock, validateCartWithSyscom } from './checkout.service';
 import {
   createStripePaymentIntent,
   verifyWebhookSignature,
@@ -29,11 +30,38 @@ export async function checkoutRoutes(app: FastifyInstance) {
     const userId = request.user!.id;
 
     try {
-      const { summary } = await validateCart(userId);
+      const { summary, cartId } = await validateCart(userId);
+
+      // Verificar productos SYSCOM contra la API del proveedor
+      const cartItems = await prisma.cart.findUnique({
+        where: { userId },
+        select: {
+          items: {
+            select: {
+              productId: true,
+              quantity: true,
+              product: { select: { id: true, syscomId: true } },
+            },
+          },
+        },
+      });
+
+      let finalSummary = summary;
+      if (cartItems && cartItems.items.length > 0) {
+        finalSummary = await validateCartWithSyscom(
+          app,
+          cartItems.items.map((i) => ({
+            productId: i.product.id,
+            syscomId: i.product.syscomId,
+            quantity: i.quantity,
+          })),
+          summary
+        );
+      }
 
       return reply.status(200).send({
         success: true,
-        data: summary,
+        data: finalSummary,
       });
     } catch (error) {
       if ((error as Error).message === 'CART_EMPTY') {
@@ -326,7 +354,7 @@ async function handlePaymentSucceeded(
     return;
   }
 
-  if (order.status === 'CONFIRMED' || order.status === 'PAID') {
+  if (order.status === 'CONFIRMED') {
     app.log.info({ action: 'ORDER_ALREADY_CONFIRMED', orderId: order.id });
     return;
   }
@@ -414,10 +442,8 @@ async function handlePaymentFailed(
     await app.redis.del(`stock_reserve:${order.id}`);
   }
 
-  // Verificar si el PaymentIntent falló 3 veces → cancelar
-  const charge = paymentIntent.charges?.data?.[0];
-  if (charge) {
-    // Contar intentos fallidos
+  // Contar intentos fallidos (webhook payment_failed) y cancelar PI tras 3 fallos
+  if (paymentIntent.last_payment_error) {
     const failCount = await app.redis.incr(`payment_failed:${order.id}`);
     if (failCount >= 3) {
       try {

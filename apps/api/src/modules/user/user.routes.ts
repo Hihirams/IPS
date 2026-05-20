@@ -242,7 +242,6 @@ export async function userRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const userId = request.user!.id;
       const data = request.validate(CreateAddressSchema, 'body') as CreateAddressInput;
-
       const result = await createAddress(userId, data);
 
       if (!result.success) {

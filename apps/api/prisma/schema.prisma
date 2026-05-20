@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider          = "prisma-client-js"
+  previewFeatures   = ["omitApi"]
 }
 
 datasource db {
@@ -96,6 +97,7 @@ model Session {
 model Product {
   id                String   @id @default(cuid())
   sku               String   @unique
+  syscomId          String?  @unique @map("syscom_id")
   name              String
   slug              String   @unique
   description       String   @db.Text
@@ -108,6 +110,9 @@ model Product {
   images            String[]
   isActive          Boolean  @default(true) @map("is_active")
   isFeatured        Boolean  @default(false) @map("is_featured")
+  satKey            String?  @map("sat_key")
+  originalLink      String?  @map("original_link")
+  lastSyncedAt      DateTime? @map("last_synced_at")
   categoryId        String   @map("category_id")
   brandId           String?  @map("brand_id")
   createdAt         DateTime @default(now()) @map("created_at")
@@ -120,6 +125,7 @@ model Product {
   reviews    Review[]
 
   @@index([slug])
+  @@index([syscomId])
   @@index([categoryId])
   @@index([isActive])
   @@index([price])
@@ -132,17 +138,20 @@ model Product {
 
 model Category {
   id          String  @id @default(cuid())
+  syscomId    String? @unique @map("syscom_id")
   name        String
   slug        String  @unique
   description String?
   image       String?
   parentId    String? @map("parent_id")
   isActive    Boolean @default(true) @map("is_active")
+  level       Int      @default(1) @map("level")
 
   products Product[]
   parent   Category?  @relation("CategoryParent", fields: [parentId], references: [id])
   children Category[] @relation("CategoryParent")
 
+  @@index([syscomId])
   @@map("categories")
 }
 
@@ -152,6 +161,7 @@ model Category {
 
 model Brand {
   id       String  @id @default(cuid())
+  syscomId String? @unique @map("syscom_id")
   name     String
   slug     String  @unique
   logo     String?
@@ -159,6 +169,7 @@ model Brand {
 
   products Product[]
 
+  @@index([syscomId])
   @@map("brands")
 }
 
@@ -332,4 +343,40 @@ model AdminAuditLog {
   @@index([entityType])
   @@index([createdAt])
   @@map("admin_audit_logs")
+}
+
+// ==========================================
+// Modelo SyncLog (Auditoria de sincronizacion SYSCOM)
+// ==========================================
+
+enum SyncStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum SyncEntityType {
+  CATEGORIES
+  BRANDS
+  PRODUCTS
+  EXCHANGE_RATE
+}
+
+model SyncLog {
+  id           String        @id @default(cuid())
+  entityType   SyncEntityType @map("entity_type")
+  status       SyncStatus    @default(RUNNING)
+  recordsProcessed Int        @default(0) @map("records_processed")
+  recordsCreated  Int        @default(0) @map("records_created")
+  recordsUpdated  Int        @default(0) @map("records_updated")
+  recordsSkipped  Int        @default(0) @map("records_skipped")
+  errorMessage String?       @map("error_message")
+  startedAt    DateTime      @default(now()) @map("started_at")
+  completedAt  DateTime?     @map("completed_at")
+  triggeredBy  String?       @map("triggered_by")
+
+  @@index([entityType])
+  @@index([status])
+  @@index([startedAt])
+  @@map("sync_logs")
 }

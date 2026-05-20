@@ -9,7 +9,10 @@
     "./eslint": "./eslint/.eslintrc.js",
     "./prettier": "./prettier/prettier.config.js",
     "./tsconfig": "./tsconfig/tsconfig.base.json",
-    "./env": "./env.schema.ts"
+    "./env": {
+      "types": "./env.schema.ts",
+      "default": "./env.schema.ts"
+    }
   },
   "devDependencies": {
     "typescript": "^5.3.3",

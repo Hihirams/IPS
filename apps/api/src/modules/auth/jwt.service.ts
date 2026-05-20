@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import type { FastifyInstance } from 'fastify';
-import type { Role } from '@ecommerce/types';
+import { Role } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 
 /**
@@ -57,7 +57,7 @@ export async function generateTokenPair(
 
   // Guardar hash del refresh token en Session PRIMERO para obtener el sessionId
   const refreshToken = app.jwt.sign(
-    { sub: userId, role, iat: now },
+    { sub: userId, role } as { sub: string; role: Role },
     { expiresIn: REFRESH_EXPIRY_SECONDS, key: app.config.JWT_REFRESH_SECRET }
   );
 
@@ -78,7 +78,7 @@ export async function generateTokenPair(
 
   // Access token: 15 minutos (incluye sessionId para identificar sesión actual)
   const accessToken = app.jwt.sign(
-    { sub: userId, role, sessionId, iat: now },
+    { sub: userId, role, sessionId } as { sub: string; role: Role; sessionId: string },
     { expiresIn: ACCESS_EXPIRY_SECONDS }
   );
 

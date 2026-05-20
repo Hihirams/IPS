@@ -1,5 +1,6 @@
 import DOMPurify from 'isomorphic-dompurify';
 import { prisma } from '../../lib/prisma';
+import { Prisma } from '@prisma/client';
 import type { FastifyInstance } from 'fastify';
 
 /**
@@ -170,8 +171,8 @@ export async function logAdminAction(
       action,
       entityType,
       entityId,
-      oldValues: oldValues ?? null,
-      newValues: newValues ?? null,
+      oldValues: (oldValues as Prisma.InputJsonValue) ?? null,
+      newValues: (newValues as Prisma.InputJsonValue) ?? null,
       ipAddress: ipAddress ?? null,
     },
   });
@@ -184,6 +185,7 @@ export async function logAdminAction(
 export interface PublicProduct {
   id: string;
   sku: string;
+  syscomId: string | null;
   name: string;
   slug: string;
   description: string;
@@ -194,6 +196,8 @@ export interface PublicProduct {
   images: string[];
   isActive: boolean;
   isFeatured: boolean;
+  satKey: string | null;
+  originalLink: string | null;
   categoryId: string;
   brandId: string | null;
   createdAt: Date;
@@ -214,9 +218,6 @@ export interface PublicProductDetail extends PublicProduct {
   }[];
 }
 
-/**
- * Transforma un producto de Prisma a formato publico (sin cost, con stockStatus).
- */
 export function toPublicProduct(
   product: Record<string, unknown> & { stock: number; lowStockThreshold: number }
 ): PublicProduct {
@@ -224,6 +225,6 @@ export function toPublicProduct(
 
   return {
     ...(rest as Omit<typeof rest, 'cost'>),
-    stockStatus: getStockStatus(stock, lowStockThreshold),
+    stockStatus: getStockStatus(Number(stock), Number(lowStockThreshold)),
   } as PublicProduct;
 }

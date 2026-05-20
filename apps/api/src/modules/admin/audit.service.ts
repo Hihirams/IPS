@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/prisma';
+import { Prisma } from '@prisma/client';
 import type { FastifyInstance } from 'fastify';
 
 /**
@@ -40,8 +41,8 @@ export async function logAdminAction(
       action,
       entityType,
       entityId,
-      oldValues: oldValues ?? null,
-      newValues: newValues ?? null,
+      oldValues: (oldValues as Prisma.InputJsonValue) ?? null,
+      newValues: (newValues as Prisma.InputJsonValue) ?? null,
       ipAddress: ipAddress ?? null,
     },
   });

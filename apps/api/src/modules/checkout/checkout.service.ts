@@ -1,5 +1,7 @@
 import { prisma } from '../../lib/prisma';
 import type { Prisma } from '@prisma/client';
+import { SyscomService } from '../../services/syscom.service';
+import type { FastifyInstance } from 'fastify';
 
 /**
  * Servicio de checkout — cálculos de totales, validaciones y reservas de stock.
@@ -8,6 +10,7 @@ import type { Prisma } from '@prisma/client';
 const SHIPPING_FLAT = 99;
 const SHIPPING_FREE_THRESHOLD = 1000;
 const TAX_RATE = 0.16; // 16% IVA México
+const PRICE_CHANGE_THRESHOLD = 0.05; // 5% de diferencia para alertar
 
 export interface CheckoutItem {
   productId: string;
@@ -58,6 +61,7 @@ export async function validateCart(userId: string): Promise<{
               stock: true,
               isActive: true,
               images: true,
+              syscomId: true,
             },
           },
         },
@@ -136,6 +140,73 @@ export async function validateCart(userId: string): Promise<{
       stockAlerts,
     },
     cartId: cart.id,
+  };
+}
+
+/**
+ * Verifica stock y precios contra la API de SYSCOM para productos
+ * que tienen syscomId. Solo se consulta SYSCOM para los productos
+ * del carrito que provienen del proveedor.
+ */
+export async function validateCartWithSyscom(
+  app: FastifyInstance,
+  cartItems: Array<{ productId: string; syscomId: string | null; quantity: number }>,
+  localSummary: CheckoutSummary
+): Promise<CheckoutSummary> {
+  const syscomItems = cartItems.filter((item) => item.syscomId !== null);
+
+  if (syscomItems.length === 0) {
+    return localSummary;
+  }
+
+  const syscom = new SyscomService(app);
+  const priceAlerts = [...localSummary.priceAlerts];
+  const stockAlerts = [...localSummary.stockAlerts];
+
+  for (const item of syscomItems) {
+    try {
+      const syscomData = await syscom.getProductStockAndPrice(item.syscomId!);
+
+      const localItem = localSummary.items.find((i) => i.productId === item.productId);
+      if (localItem) {
+        const syscomPrice = syscomData.precioLista > 0 ? syscomData.precioLista : syscomData.precioEspecial;
+
+        if (syscomPrice > 0 && Math.abs(localItem.unitPrice - syscomPrice) / localItem.unitPrice > PRICE_CHANGE_THRESHOLD) {
+          const existingAlert = priceAlerts.find((a) => a.productId === item.productId);
+          if (!existingAlert) {
+            priceAlerts.push({
+              productId: item.productId,
+              productName: localItem.name,
+              oldPrice: localItem.unitPrice,
+              newPrice: syscomPrice,
+            });
+          }
+        }
+
+        if (syscomData.stock < item.quantity) {
+          const existingAlert = stockAlerts.find((a) => a.productId === item.productId);
+          if (!existingAlert) {
+            stockAlerts.push({
+              productId: item.productId,
+              productName: localItem.name,
+              requested: item.quantity,
+              available: syscomData.stock,
+            });
+          }
+        }
+      }
+    } catch (err) {
+      app.log.warn(
+        { syscomId: item.syscomId, err },
+        'No se pudo verificar producto con SYSCOM, usando datos locales'
+      );
+    }
+  }
+
+  return {
+    ...localSummary,
+    priceAlerts,
+    stockAlerts,
   };
 }
 
