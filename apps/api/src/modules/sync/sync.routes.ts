@@ -268,81 +268,78 @@ export async function syncRoutes(app: FastifyInstance) {
     '/api/admin/sync/all',
     { preHandler: [authenticate, requireAdmin, requireMFA, requireAdminSession] },
     async (request, reply) => {
-      try {
-        const catLog = await prisma.syncLog.create({
-          data: { entityType: 'CATEGORIES', status: 'RUNNING', triggeredBy: request.user!.id },
-        });
+      const userId = request.user!.id;
 
-        const catStats = await syncService.syncCategories();
-        await prisma.syncLog.update({
-          where: { id: catLog.id },
-          data: {
-            status: 'COMPLETED',
-            recordsProcessed: catStats.processed,
-            recordsCreated: catStats.created,
-            recordsUpdated: catStats.updated,
-            recordsSkipped: catStats.skipped,
-            errorMessage: catStats.errors.length > 0 ? catStats.errors.join('\n') : null,
-            completedAt: new Date(),
-          },
-        });
+      // Responder inmediatamente; ejecutar sync en background para evitar timeouts HTTP
+      reply.status(202).send({
+        success: true,
+        data: { message: 'Sincronización iniciada en segundo plano.' },
+      });
 
-        const brandLog = await prisma.syncLog.create({
-          data: { entityType: 'BRANDS', status: 'RUNNING', triggeredBy: request.user!.id },
-        });
+      // Background sync
+      (async () => {
+        try {
+          const catLog = await prisma.syncLog.create({
+            data: { entityType: 'CATEGORIES', status: 'RUNNING', triggeredBy: userId },
+          });
 
-        const brandStats = await syncService.syncBrands();
-        await prisma.syncLog.update({
-          where: { id: brandLog.id },
-          data: {
-            status: 'COMPLETED',
-            recordsProcessed: brandStats.processed,
-            recordsCreated: brandStats.created,
-            recordsUpdated: brandStats.updated,
-            recordsSkipped: brandStats.skipped,
-            errorMessage: brandStats.errors.length > 0 ? brandStats.errors.join('\n') : null,
-            completedAt: new Date(),
-          },
-        });
+          const catStats = await syncService.syncCategories();
+          await prisma.syncLog.update({
+            where: { id: catLog.id },
+            data: {
+              status: 'COMPLETED',
+              recordsProcessed: catStats.processed,
+              recordsCreated: catStats.created,
+              recordsUpdated: catStats.updated,
+              recordsSkipped: catStats.skipped,
+              errorMessage: catStats.errors.length > 0 ? catStats.errors.join('\n') : null,
+              completedAt: new Date(),
+            },
+          });
 
-        const prodLog = await prisma.syncLog.create({
-          data: { entityType: 'PRODUCTS', status: 'RUNNING', triggeredBy: request.user!.id },
-        });
+          const brandLog = await prisma.syncLog.create({
+            data: { entityType: 'BRANDS', status: 'RUNNING', triggeredBy: userId },
+          });
 
-        const prodStats = await syncService.syncProducts();
-        await prisma.syncLog.update({
-          where: { id: prodLog.id },
-          data: {
-            status: 'COMPLETED',
-            recordsProcessed: prodStats.processed,
-            recordsCreated: prodStats.created,
-            recordsUpdated: prodStats.updated,
-            recordsSkipped: prodStats.skipped,
-            errorMessage: prodStats.errors.length > 0 ? prodStats.errors.join('\n') : null,
-            completedAt: new Date(),
-          },
-        });
+          const brandStats = await syncService.syncBrands();
+          await prisma.syncLog.update({
+            where: { id: brandLog.id },
+            data: {
+              status: 'COMPLETED',
+              recordsProcessed: brandStats.processed,
+              recordsCreated: brandStats.created,
+              recordsUpdated: brandStats.updated,
+              recordsSkipped: brandStats.skipped,
+              errorMessage: brandStats.errors.length > 0 ? brandStats.errors.join('\n') : null,
+              completedAt: new Date(),
+            },
+          });
 
-        await cache.invalidateAllProducts();
+          const prodLog = await prisma.syncLog.create({
+            data: { entityType: 'PRODUCTS', status: 'RUNNING', triggeredBy: userId },
+          });
 
-        return reply.status(200).send({
-          success: true,
-          data: {
-            categories: catStats,
-            brands: brandStats,
-            products: prodStats,
-          },
-        });
-      } catch (err) {
-        return reply.status(500).send({
-          success: false,
-          error: {
-            code: 'SYNC_FAILED',
-            message: 'Error en sincronizacion completa.',
-            details: err instanceof Error ? err.message : String(err),
-          },
-        });
-      }
+          const prodStats = await syncService.syncProducts();
+          await prisma.syncLog.update({
+            where: { id: prodLog.id },
+            data: {
+              status: 'COMPLETED',
+              recordsProcessed: prodStats.processed,
+              recordsCreated: prodStats.created,
+              recordsUpdated: prodStats.updated,
+              recordsSkipped: prodStats.skipped,
+              errorMessage: prodStats.errors.length > 0 ? prodStats.errors.join('\n') : null,
+              completedAt: new Date(),
+            },
+          });
+
+          await cache.invalidateAllProducts();
+
+          app.log.info('[sync] Sincronización completa finalizada en segundo plano.');
+        } catch (err) {
+          app.log.error({ err }, '[sync] Error en sincronización completa en segundo plano.');
+        }
+      })();
     }
   );
 }
