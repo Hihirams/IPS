@@ -63,7 +63,10 @@ const envSchema = z.object({
   CLOUDFLARE_ZONE_ID: z.string().optional(),
 
   // Alertas Slack
-  SLACK_WEBHOOK_URL: z.string().url().optional(),
+  SLACK_WEBHOOK_URL: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z.string().url().optional()
+  ),
 
   // Hash SHA-384 de stripe.js para monitoreo de integridad (anti-Magecart)
   STRIPE_JS_HASH: z.string().optional(),

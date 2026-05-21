@@ -24,6 +24,11 @@ await build({
     'uuid',
     'jsdom',
     'isomorphic-dompurify',
+    'react',
+    'react-dom',
+    'react-dom/server',
+    '@react-email/*',
+    'resend',
   ],
 });
 
