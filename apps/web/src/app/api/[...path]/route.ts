@@ -28,8 +28,12 @@ function buildForwardHeaders(request: NextRequest): Headers {
   return headers;
 }
 
-async function proxy(request: NextRequest, context: { params: { path: string[] } }) {
-  const targetUrl = buildTargetUrl(request, context.params.path);
+async function proxy(
+  request: NextRequest,
+  context: { params: Promise<{ path: string[] }> }
+) {
+  const { path } = await context.params;
+  const targetUrl = buildTargetUrl(request, path);
   const body = METHODS_WITHOUT_BODY.has(request.method) ? undefined : await request.arrayBuffer();
 
   return fetch(targetUrl, {

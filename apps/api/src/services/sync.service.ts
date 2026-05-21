@@ -254,8 +254,16 @@ export class SyncService {
       );
     }
 
+    const totalCategories = categories.filter((c) => c.syscomId).length;
+    let categoryIndex = 0;
+
     for (const category of categories) {
       if (!category.syscomId) continue;
+      categoryIndex++;
+      this.log.info(
+        { category: category.name, syscomId: category.syscomId, progress: `${categoryIndex}/${totalCategories}` },
+        'Sincronizando productos de categoria SYSCOM'
+      );
 
       try {
         const catStats = await this.syncProductsForSyscomCategory(

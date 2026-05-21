@@ -25,6 +25,79 @@ import { gdprRoutes } from './modules/gdpr/gdpr.routes';
 import { syncRoutes } from './modules/sync/sync.routes';
 import { sentryPlugin } from './services/monitoring.service';
 import { startStripeIntegrityCron } from './services/script-integrity.service';
+import { SyncService } from './services/sync.service';
+import { prisma } from './lib/prisma';
+
+/**
+ * Auto-marca los primeros N productos con stock como destacados
+ * si no hay ningún producto destacado en la BD.
+ */
+async function autoFeatureProducts(count = 8): Promise<void> {
+  const featuredCount = await prisma.product.count({ where: { isFeatured: true } });
+  if (featuredCount >= count) return;
+
+  const productsToFeature = await prisma.product.findMany({
+    where: {
+      isActive: true,
+      stock: { gt: 0 },
+      images: { isEmpty: false },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: count - featuredCount,
+    select: { id: true },
+  });
+
+  if (productsToFeature.length > 0) {
+    await prisma.product.updateMany({
+      where: { id: { in: productsToFeature.map((p) => p.id) } },
+      data: { isFeatured: true },
+    });
+    console.log(`[auto-feature] Marcados ${productsToFeature.length} productos como destacados`);
+  }
+}
+
+/**
+ * Cron de sincronización automática del catálogo SYSCOM.
+ * Corre cada SYNC_INTERVAL_HOURS horas.
+ */
+function startSyncCron(app: import('fastify').FastifyInstance, intervalHours = 6): void {
+  const intervalMs = intervalHours * 60 * 60 * 1000;
+
+  // Auto-feature al arrancar (sin bloquear startup)
+  autoFeatureProducts().catch((err) =>
+    app.log.warn({ err }, '[auto-feature] Error al marcar productos destacados')
+  );
+
+  const runSync = async () => {
+    app.log.info('[sync-cron] Iniciando sincronización automática del catálogo...');
+    try {
+      const syncService = new SyncService(app);
+
+      // Sincronizar categorías
+      const catStats = await syncService.syncCategories();
+      app.log.info({ catStats }, '[sync-cron] Categorías sincronizadas');
+
+      // Sincronizar marcas
+      const brandStats = await syncService.syncBrands();
+      app.log.info({ brandStats }, '[sync-cron] Marcas sincronizadas');
+
+      // Sincronizar productos (todas las categorías)
+      const prodStats = await syncService.syncProducts();
+      app.log.info({ prodStats }, '[sync-cron] Productos sincronizados');
+
+      // Auto-feature si es necesario
+      await autoFeatureProducts();
+
+      app.log.info('[sync-cron] Sincronización automática completada');
+    } catch (err) {
+      app.log.error({ err }, '[sync-cron] Error en sincronización automática');
+    }
+  };
+
+  // Programar ejecución periódica
+  setInterval(runSync, intervalMs);
+  app.log.info(`[sync-cron] Cron de sincronización programado cada ${intervalHours} horas`);
+}
 
 async function bootstrap() {
   // Validar variables de entorno antes de arrancar
@@ -161,6 +234,9 @@ async function bootstrap() {
     // Iniciar cron de verificación de integridad de scripts (anti-Magecart)
     // SECURITY: Monitorea que stripe.js no haya sido modificado por un atacante
     startStripeIntegrityCron(app);
+
+    // Iniciar cron de sincronización automática del catálogo SYSCOM
+    startSyncCron(app, 6);
   } catch (err) {
     app.log.error(err);
     process.exit(1);
