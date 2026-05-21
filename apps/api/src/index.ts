@@ -94,7 +94,8 @@ function startSyncCron(app: import('fastify').FastifyInstance, intervalHours = 6
     }
   };
 
-  // Programar ejecución periódica
+  // Ejecutar inmediatamente al arrancar y luego cada intervalo
+  runSync().catch((err) => app.log.error({ err }, '[sync-cron] Error en ejecución inicial'));
   setInterval(runSync, intervalMs);
   app.log.info(`[sync-cron] Cron de sincronización programado cada ${intervalHours} horas`);
 }
