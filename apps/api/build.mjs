@@ -1,7 +1,7 @@
 import { build } from 'esbuild';
 
 await build({
-  entryPoints: ['./src/index.ts'],
+  entryPoints: ['./src/index.ts', './src/scripts/sync-full-catalog.ts'],
   outdir: './dist',
   bundle: true,
   format: 'cjs',
@@ -32,4 +32,4 @@ await build({
   ],
 });
 
-console.log('Built ./dist/index.js');
+console.log('Built ./dist/index.js and ./dist/scripts/sync-full-catalog.js');
