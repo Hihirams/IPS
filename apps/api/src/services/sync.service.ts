@@ -231,6 +231,7 @@ export class SyncService {
   async syncProducts(categoryId?: string, maxPages?: number): Promise<SyncStats> {
     const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, errors: [] };
     const seenProductIds = new Set<string>();
+    const syncStartedAt = new Date();
 
     this.log.info({ categoryId }, 'Iniciando sincronizacion de productos SYSCOM...');
 
@@ -286,7 +287,7 @@ export class SyncService {
     const deactivated = await prisma.product.updateMany({
       where: {
         syscomId: { not: null },
-        lastSyncedAt: { lt: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+        lastSyncedAt: { lt: syncStartedAt },
         isActive: true,
       },
       data: { isActive: false },
@@ -456,7 +457,7 @@ export class SyncService {
     }
 
     const slug = await generateSlug(product.titulo || product.modelo || `product-${syscomId}`);
-      const sku = product.modelo || `SYSCOM-${syscomId}`;
+      const sku = `SYSCOM-${syscomId}`;
 
       await prisma.product.create({
         data: {
