@@ -16,6 +16,12 @@ interface SyncStats {
   errors: string[];
 }
 
+interface SyncLookups {
+  existingProducts: Map<string, { id: string; name: string }>; // syscomId -> { id, name }
+  categoriesBySyscomId: Map<string, string>; // syscomId -> category.id
+  brandsByName: Map<string, string>; // lowercase name -> brand.id
+}
+
 function parseCategoryLevel(nivel: string | number): number {
   const level = typeof nivel === 'number' ? nivel : Number(nivel);
   return Number.isFinite(level) && level > 0 ? level : 1;
@@ -243,7 +249,24 @@ export class SyncService {
       if (!category) {
         throw new Error(`Categoria SYSCOM ID ${categoryId} no encontrada en DB`);
       }
-      return this.syncProductsForSyscomCategory(categoryId, seenProductIds, maxPages);
+      // Preload lookups for single-category sync
+      const existingProducts = new Map(
+        await prisma.product
+          .findMany({ where: { syscomId: { not: null } }, select: { syscomId: true, id: true, name: true } })
+          .then((rows) => rows.map((r) => [r.syscomId!, { id: r.id, name: r.name }] as [string, { id: string; name: string }]))
+      );
+      const categoriesBySyscomId = new Map(
+        await prisma.category
+          .findMany({ where: { syscomId: { not: null } }, select: { syscomId: true, id: true } })
+          .then((rows) => rows.map((r) => [r.syscomId!, r.id] as [string, string]))
+      );
+      const brandsByName = new Map(
+        await prisma.brand
+          .findMany({ select: { name: true, id: true } })
+          .then((rows) => rows.map((r) => [r.name.toLowerCase(), r.id] as [string, string]))
+      );
+      const lookups: SyncLookups = { existingProducts, categoriesBySyscomId, brandsByName };
+      return this.syncProductsForSyscomCategory(categoryId, seenProductIds, lookups, maxPages);
     }
 
     const categories = await prisma.category.findMany({
@@ -257,6 +280,29 @@ export class SyncService {
         'No hay categorias con syscomId en la base de datos. Ejecuta POST /api/admin/sync/categories primero.'
       );
     }
+
+    // Preload lookups into memory to eliminate per-product DB queries
+    this.log.info('Precargando lookups en memoria...');
+    const existingProducts = new Map(
+      await prisma.product
+        .findMany({ where: { syscomId: { not: null } }, select: { syscomId: true, id: true, name: true } })
+        .then((rows) => rows.map((r) => [r.syscomId!, { id: r.id, name: r.name }] as [string, { id: string; name: string }]))
+    );
+    const categoriesBySyscomId = new Map(
+      await prisma.category
+        .findMany({ where: { syscomId: { not: null } }, select: { syscomId: true, id: true } })
+        .then((rows) => rows.map((r) => [r.syscomId!, r.id] as [string, string]))
+    );
+    const brandsByName = new Map(
+      await prisma.brand
+        .findMany({ select: { name: true, id: true } })
+        .then((rows) => rows.map((r) => [r.name.toLowerCase(), r.id] as [string, string]))
+    );
+    this.log.info(
+      { products: existingProducts.size, categories: categoriesBySyscomId.size, brands: brandsByName.size },
+      'Lookups precargados'
+    );
+    const lookups: SyncLookups = { existingProducts, categoriesBySyscomId, brandsByName };
 
     const totalCategories = categories.filter((c) => c.syscomId).length;
     let categoryIndex = 0;
@@ -273,6 +319,7 @@ export class SyncService {
         const catStats = await this.syncProductsForSyscomCategory(
           category.syscomId,
           seenProductIds,
+          lookups,
           maxPages
         );
         stats.processed += catStats.processed;
@@ -304,6 +351,7 @@ export class SyncService {
   private async syncProductsForSyscomCategory(
     syscomCategoryId: string,
     seenProductIds: Set<string>,
+    lookups: SyncLookups,
     maxPages?: number
   ): Promise<SyncStats> {
     const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, skippedDuplicate: 0, skippedNoCategory: 0, skippedError: 0, errors: [] };
@@ -331,7 +379,7 @@ export class SyncService {
           seenProductIds.add(syscomId);
 
           try {
-            const outcome = await this.upsertProduct(product, syscomCategoryId);
+            const outcome = await this.upsertProduct(product, lookups, syscomCategoryId);
             if (outcome === 'skipped') {
               stats.skipped++;
               stats.skippedNoCategory++;
@@ -365,10 +413,11 @@ export class SyncService {
 
   private async upsertProduct(
     product: SyscomProduct,
+    lookups: SyncLookups,
     fallbackSyscomCategoryId?: string
   ): Promise<'created' | 'updated' | 'skipped'> {
     const syscomId = String(product.producto_id);
-    const existing = await prisma.product.findFirst({ where: { syscomId } });
+    const existing = lookups.existingProducts.get(syscomId);
 
     // Resolve category: prefer deepest level in DB, else shallowest match
     let categoryId: string | undefined;
@@ -377,21 +426,17 @@ export class SyncService {
         (a, b) => parseCategoryLevel(b.nivel) - parseCategoryLevel(a.nivel)
       );
       for (const cat of byDepth) {
-        const category = await prisma.category.findFirst({
-          where: { syscomId: String(cat.id) },
-        });
-        if (category) {
-          categoryId = category.id;
+        const id = lookups.categoriesBySyscomId.get(String(cat.id));
+        if (id) {
+          categoryId = id;
           break;
         }
       }
       if (!categoryId) {
         for (const cat of [...byDepth].reverse()) {
-          const category = await prisma.category.findFirst({
-            where: { syscomId: String(cat.id) },
-          });
-          if (category) {
-            categoryId = category.id;
+          const id = lookups.categoriesBySyscomId.get(String(cat.id));
+          if (id) {
+            categoryId = id;
             break;
           }
         }
@@ -400,21 +445,13 @@ export class SyncService {
 
     // Fallback: use the category we are currently syncing from
     if (!categoryId && fallbackSyscomCategoryId) {
-      const fallbackCategory = await prisma.category.findFirst({
-        where: { syscomId: fallbackSyscomCategoryId },
-      });
-      if (fallbackCategory) {
-        categoryId = fallbackCategory.id;
-      }
+      categoryId = lookups.categoriesBySyscomId.get(fallbackSyscomCategoryId);
     }
 
     // Resolve brand
     let brandId: string | undefined;
     if (product.marca) {
-      const brand = await prisma.brand.findFirst({
-        where: { name: { equals: product.marca, mode: 'insensitive' } },
-      });
-      if (brand) brandId = brand.id;
+      brandId = lookups.brandsByName.get(product.marca.toLowerCase());
     }
 
     // Calculate prices
@@ -474,31 +511,34 @@ export class SyncService {
     }
 
     const slug = await generateSlug(product.titulo || product.modelo || `product-${syscomId}`);
-      const sku = `SYSCOM-${syscomId}`;
+    const sku = `SYSCOM-${syscomId}`;
 
-      await prisma.product.create({
-        data: {
-          syscomId,
-          sku,
-          name: product.titulo || product.modelo || `Producto ${syscomId}`,
-          slug,
-          description: product.titulo || product.modelo || '',
-          specs: Object.keys(specs).length > 0 ? specs as unknown as Prisma.JsonValue : {},
-          price: price > 0 ? price : 1,
-          comparePrice,
-          cost: cost > 0 ? cost : price > 0 ? price : 1,
-          stock,
-          lowStockThreshold: 5,
-          images: images.length > 0 ? images : ['/placeholder-product.png'],
-          isActive: true,
-          isFeatured: false,
-          satKey: product.sat_key || null,
-          originalLink: product.link || null,
-          lastSyncedAt: new Date(),
-          categoryId,
-          brandId: brandId || null,
-        },
-      });
+    const created = await prisma.product.create({
+      data: {
+        syscomId,
+        sku,
+        name: product.titulo || product.modelo || `Producto ${syscomId}`,
+        slug,
+        description: product.titulo || product.modelo || '',
+        specs: Object.keys(specs).length > 0 ? specs as unknown as Prisma.JsonValue : {},
+        price: price > 0 ? price : 1,
+        comparePrice,
+        cost: cost > 0 ? cost : price > 0 ? price : 1,
+        stock,
+        lowStockThreshold: 5,
+        images: images.length > 0 ? images : ['/placeholder-product.png'],
+        isActive: true,
+        isFeatured: false,
+        satKey: product.sat_key || null,
+        originalLink: product.link || null,
+        lastSyncedAt: new Date(),
+        categoryId,
+        brandId: brandId || null,
+      },
+    });
+
+    // Register in lookups so any future reference finds it
+    lookups.existingProducts.set(syscomId, { id: created.id, name: created.name });
     return 'created';
   }
 
