@@ -396,15 +396,28 @@ export class SyncService {
       }
     }
 
-    const deactivated = await prisma.product.updateMany({
-      where: {
-        syscomId: { not: null },
-        lastSyncedAt: { lt: syncStartedAt },
-        isActive: true,
-      },
-      data: { isActive: false },
-    });
-    this.log.info({ deactivated: deactivated.count }, 'Productos desactivados (no encontrados en SYSCOM)');
+    const MAX_FAILED_CATEGORIES_RATIO = 0.05;
+    const MAX_PRODUCT_ERRORS = 50;
+    const failedRatio = failedCategories.length / categories.filter((c) => c.syscomId).length;
+    const shouldDeactivate = failedCategories.length === 0
+      || (failedRatio <= MAX_FAILED_CATEGORIES_RATIO && stats.skippedError <= MAX_PRODUCT_ERRORS);
+
+    if (!shouldDeactivate) {
+      this.log.warn(
+        { failedCategories: failedCategories.length, failedRatio, skippedError: stats.skippedError },
+        'Omitiendo desactivacion de productos: sync con errores significativos'
+      );
+    } else {
+      const deactivated = await prisma.product.updateMany({
+        where: {
+          syscomId: { not: null },
+          lastSyncedAt: { lt: syncStartedAt },
+          isActive: true,
+        },
+        data: { isActive: false },
+      });
+      this.log.info({ deactivated: deactivated.count }, 'Productos desactivados (no encontrados en SYSCOM)');
+    }
 
     this.log.info({ stats, failedCategoriesRetried: failedCategories.length }, 'Sincronizacion de productos completada');
     return stats;
