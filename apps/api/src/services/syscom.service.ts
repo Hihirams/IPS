@@ -6,6 +6,9 @@ const TOKEN_CACHE_KEY = 'syscom:access_token';
 const TOKEN_EXPIRY_BUFFER_SECONDS = 60;
 const RATE_LIMIT_PER_MINUTE = 60;
 const THROTTLE_INTERVAL_MS = Math.ceil(60_000 / RATE_LIMIT_PER_MINUTE); // ~1000ms entre requests
+const MAX_RETRIES = 3;
+const RETRYABLE_STATUSES = [500, 502, 503, 504, 520];
+const RETRY_BASE_DELAY_MS = 1000;
 
 export interface SyscomCategory {
   id: string;
@@ -146,7 +149,8 @@ export class SyscomService {
   private async request<T>(
     path: string,
     params?: Record<string, string | number>,
-    retried = false
+    retried = false,
+    retryCount = 0
   ): Promise<T> {
     await this.throttle();
 
@@ -167,16 +171,27 @@ export class SyscomService {
 
     if (response.status === 401 && !retried) {
       await this.redis.del(TOKEN_CACHE_KEY);
-      return this.request(path, params, true);
+      return this.request(path, params, true, retryCount);
     }
 
     if (response.status === 429) {
       this.log.warn('Rate limit SYSCOM alcanzado, reintentando en 60s...');
       await new Promise((resolve) => setTimeout(resolve, 60_000));
-      return this.request(path, params, retried);
+      return this.request(path, params, retried, retryCount);
     }
 
     if (!response.ok) {
+      // Retry transient server errors with exponential backoff
+      if (RETRYABLE_STATUSES.includes(response.status) && retryCount < MAX_RETRIES) {
+        const delay = RETRY_BASE_DELAY_MS * Math.pow(2, retryCount);
+        this.log.warn(
+          { status: response.status, path, retryCount, delayMs: delay },
+          'Error transitorio en SYSCOM, reintentando...'
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return this.request(path, params, retried, retryCount + 1);
+      }
+
       const text = await response.text();
       this.log.error({ status: response.status, path, body: text }, 'Error en request SYSCOM');
       throw new Error(`SYSCOM API error: ${response.status} - ${path}`);

@@ -10,6 +10,9 @@ interface SyncStats {
   created: number;
   updated: number;
   skipped: number;
+  skippedDuplicate: number;
+  skippedNoCategory: number;
+  skippedError: number;
   errors: string[];
 }
 
@@ -57,7 +60,7 @@ export class SyncService {
   }
 
   async syncCategories(): Promise<SyncStats> {
-    const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, errors: [] };
+    const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, skippedDuplicate: 0, skippedNoCategory: 0, skippedError: 0, errors: [] };
 
     this.log.info('Iniciando sincronizacion de categorias SYSCOM...');
 
@@ -119,7 +122,7 @@ export class SyncService {
   }
 
   private async syncSubcategories(parentSyscomId: string | number, subcategories: SyscomCategory[]): Promise<SyncStats> {
-    const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, errors: [] };
+    const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, skippedDuplicate: 0, skippedNoCategory: 0, skippedError: 0, errors: [] };
 
     const parentCategory = await prisma.category.findFirst({ where: { syscomId: String(parentSyscomId) } });
     if (!parentCategory) {
@@ -183,7 +186,7 @@ export class SyncService {
   }
 
   async syncBrands(): Promise<SyncStats> {
-    const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, errors: [] };
+    const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, skippedDuplicate: 0, skippedNoCategory: 0, skippedError: 0, errors: [] };
 
     this.log.info('Iniciando sincronizacion de marcas SYSCOM...');
 
@@ -229,7 +232,7 @@ export class SyncService {
    * Sin categoryId: recorre todas las categorias locales con syscomId.
    */
   async syncProducts(categoryId?: string, maxPages?: number): Promise<SyncStats> {
-    const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, errors: [] };
+    const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, skippedDuplicate: 0, skippedNoCategory: 0, skippedError: 0, errors: [] };
     const seenProductIds = new Set<string>();
     const syncStartedAt = new Date();
 
@@ -303,7 +306,7 @@ export class SyncService {
     seenProductIds: Set<string>,
     maxPages?: number
   ): Promise<SyncStats> {
-    const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, errors: [] };
+    const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, skippedDuplicate: 0, skippedNoCategory: 0, skippedError: 0, errors: [] };
 
     let page = 1;
     let totalPages = 1;
@@ -322,6 +325,7 @@ export class SyncService {
           const syscomId = String(product.producto_id);
           if (seenProductIds.has(syscomId)) {
             stats.skipped++;
+            stats.skippedDuplicate++;
             continue;
           }
           seenProductIds.add(syscomId);
@@ -330,6 +334,7 @@ export class SyncService {
             const outcome = await this.upsertProduct(product);
             if (outcome === 'skipped') {
               stats.skipped++;
+              stats.skippedNoCategory++;
               continue;
             }
             stats.processed++;
@@ -341,6 +346,7 @@ export class SyncService {
               `Producto ${product.modelo} (ID ${product.producto_id}): ${err instanceof Error ? err.message : String(err)}`
             );
             stats.skipped++;
+            stats.skippedError++;
           }
         }
       } catch (err) {
@@ -348,7 +354,7 @@ export class SyncService {
         stats.errors.push(
           `Categoria ${syscomCategoryId} pagina ${page}: ${err instanceof Error ? err.message : String(err)}`
         );
-        break;
+        // Skip this page and continue to next instead of aborting the entire category
       }
 
       page++;
@@ -486,7 +492,7 @@ export class SyncService {
   }
 
   async syncFullProductDetail(syscomProductId: string | number): Promise<SyncStats> {
-    const stats: SyncStats = { processed: 1, created: 0, updated: 0, skipped: 0, errors: [] };
+    const stats: SyncStats = { processed: 1, created: 0, updated: 0, skipped: 0, skippedDuplicate: 0, skippedNoCategory: 0, skippedError: 0, errors: [] };
 
     try {
       const detail = await this.syscom.getProductById(syscomProductId);
@@ -549,7 +555,7 @@ export class SyncService {
    * Obtiene galería completa desde SYSCOM para productos ya importados (1 req/producto).
    */
   async enrichProductImages(options?: { limit?: number; offset?: number }): Promise<SyncStats> {
-    const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, errors: [] };
+    const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, skippedDuplicate: 0, skippedNoCategory: 0, skippedError: 0, errors: [] };
     const products = await prisma.product.findMany({
       where: { syscomId: { not: null } },
       select: { syscomId: true },
@@ -587,7 +593,7 @@ export class SyncService {
   }
 
   async syncExchangeRate(): Promise<SyncStats> {
-    const stats: SyncStats = { processed: 1, created: 0, updated: 0, skipped: 0, errors: [] };
+    const stats: SyncStats = { processed: 1, created: 0, updated: 0, skipped: 0, skippedDuplicate: 0, skippedNoCategory: 0, skippedError: 0, errors: [] };
 
     try {
       const rates = await this.syscom.getExchangeRate();
