@@ -269,14 +269,9 @@ export class SyncService {
       return this.syncProductsForSyscomCategory(categoryId, seenProductIds, lookups, maxPages);
     }
 
-    const totalCategoriesWithSyscomId = await prisma.category.count({
-      where: { syscomId: { not: null } },
-    });
-
     const categories = await prisma.category.findMany({
       where: {
         syscomId: { not: null },
-        children: { none: {} },
       },
       select: { syscomId: true, name: true },
       orderBy: [{ level: 'asc' }, { name: 'asc' }],
@@ -284,13 +279,13 @@ export class SyncService {
 
     if (categories.length === 0) {
       throw new Error(
-        'No hay categorias hoja con syscomId en la base de datos. Ejecuta POST /api/admin/sync/categories primero.'
+        'No hay categorias con syscomId en la base de datos. Ejecuta POST /api/admin/sync/categories primero.'
       );
     }
 
     this.log.info(
-      { totalCategories: totalCategoriesWithSyscomId, leafCategories: categories.length },
-      'Sincronizando solo categorias hoja (sin subcategorias)'
+      { totalCategories: categories.length },
+      'Sincronizando todas las categorias con syscomId'
     );
 
     this.log.info('Precargando lookups en memoria...');
