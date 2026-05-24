@@ -241,6 +241,7 @@ export class SyncService {
     const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, skippedDuplicate: 0, skippedNoCategory: 0, skippedError: 0, errors: [] };
     const seenProductIds = new Set<string>();
     const syncStartedAt = new Date();
+    const failedCategories: Array<{ syscomId: string; name: string }> = [];
 
     this.log.info({ categoryId }, 'Iniciando sincronizacion de productos SYSCOM...');
 
@@ -249,7 +250,6 @@ export class SyncService {
       if (!category) {
         throw new Error(`Categoria SYSCOM ID ${categoryId} no encontrada en DB`);
       }
-      // Preload lookups for single-category sync
       const existingProducts = new Map(
         await prisma.product
           .findMany({ where: { syscomId: { not: null } }, select: { syscomId: true, id: true, name: true } })
@@ -269,19 +269,30 @@ export class SyncService {
       return this.syncProductsForSyscomCategory(categoryId, seenProductIds, lookups, maxPages);
     }
 
-    const categories = await prisma.category.findMany({
+    const totalCategoriesWithSyscomId = await prisma.category.count({
       where: { syscomId: { not: null } },
+    });
+
+    const categories = await prisma.category.findMany({
+      where: {
+        syscomId: { not: null },
+        children: { none: {} },
+      },
       select: { syscomId: true, name: true },
       orderBy: [{ level: 'asc' }, { name: 'asc' }],
     });
 
     if (categories.length === 0) {
       throw new Error(
-        'No hay categorias con syscomId en la base de datos. Ejecuta POST /api/admin/sync/categories primero.'
+        'No hay categorias hoja con syscomId en la base de datos. Ejecuta POST /api/admin/sync/categories primero.'
       );
     }
 
-    // Preload lookups into memory to eliminate per-product DB queries
+    this.log.info(
+      { totalCategories: totalCategoriesWithSyscomId, leafCategories: categories.length },
+      'Sincronizando solo categorias hoja (sin subcategorias)'
+    );
+
     this.log.info('Precargando lookups en memoria...');
     const existingProducts = new Map(
       await prisma.product
@@ -326,11 +337,67 @@ export class SyncService {
         stats.created += catStats.created;
         stats.updated += catStats.updated;
         stats.skipped += catStats.skipped;
+        stats.skippedDuplicate += catStats.skippedDuplicate;
+        stats.skippedNoCategory += catStats.skippedNoCategory;
+        stats.skippedError += catStats.skippedError;
         stats.errors.push(...catStats.errors);
+
+        this.log.info({
+          category: category.name,
+          syscomId: category.syscomId,
+          processed: catStats.processed,
+          created: catStats.created,
+          updated: catStats.updated,
+          skipped: catStats.skipped,
+          errorCount: catStats.errors.length,
+        }, 'Categoria completada');
+
+        if (catStats.errors.length > 0) {
+          failedCategories.push({ syscomId: category.syscomId, name: category.name });
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         this.log.error({ category, err }, 'Error sincronizando productos de categoria');
         stats.errors.push(`Categoria ${category.name} (${category.syscomId}): ${message}`);
+        failedCategories.push({ syscomId: category.syscomId, name: category.name });
+        stats.skippedError++;
+      }
+    }
+
+    if (failedCategories.length > 0) {
+      this.log.info({ count: failedCategories.length, categories: failedCategories.map(c => c.name) }, 'Iniciando segunda pasada para categorias con errores');
+      for (const failed of failedCategories) {
+        this.log.info({ category: failed.name, syscomId: failed.syscomId }, 'Reintento de categoria fallida');
+        try {
+          const catStats = await this.syncProductsForSyscomCategory(
+            failed.syscomId,
+            seenProductIds,
+            lookups,
+            maxPages
+          );
+          stats.processed += catStats.processed;
+          stats.created += catStats.created;
+          stats.updated += catStats.updated;
+          stats.skipped += catStats.skipped;
+          stats.skippedDuplicate += catStats.skippedDuplicate;
+          stats.skippedNoCategory += catStats.skippedNoCategory;
+          stats.skippedError += catStats.skippedError;
+          stats.errors.push(...catStats.errors);
+
+          this.log.info({
+            category: failed.name,
+            syscomId: failed.syscomId,
+            processed: catStats.processed,
+            created: catStats.created,
+            updated: catStats.updated,
+            recovered: catStats.errors.length === 0 ? 'SI' : 'PARCIAL',
+          }, 'Reintento completado');
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          this.log.error({ category: failed, err }, 'Fallo reintento de categoria');
+          stats.errors.push(`Reintento ${failed.name} (${failed.syscomId}): ${message}`);
+          stats.skippedError++;
+        }
       }
     }
 
@@ -344,7 +411,7 @@ export class SyncService {
     });
     this.log.info({ deactivated: deactivated.count }, 'Productos desactivados (no encontrados en SYSCOM)');
 
-    this.log.info({ stats }, 'Sincronizacion de productos completada');
+    this.log.info({ stats, failedCategoriesRetried: failedCategories.length }, 'Sincronizacion de productos completada');
     return stats;
   }
 
@@ -357,7 +424,7 @@ export class SyncService {
     const stats: SyncStats = { processed: 0, created: 0, updated: 0, skipped: 0, skippedDuplicate: 0, skippedNoCategory: 0, skippedError: 0, errors: [] };
 
     let page = 1;
-    let totalPages = 1;
+    let totalPages: number | null = null;
     const pageLimit = maxPages && maxPages > 0 ? maxPages : undefined;
 
     do {
@@ -367,7 +434,9 @@ export class SyncService {
           pagina: page,
         });
 
-        totalPages = result.paginas;
+        if (totalPages === null) {
+          totalPages = result.paginas;
+        }
 
         for (const product of result.productos) {
           const syscomId = String(product.producto_id);
@@ -402,11 +471,17 @@ export class SyncService {
         stats.errors.push(
           `Categoria ${syscomCategoryId} pagina ${page}: ${err instanceof Error ? err.message : String(err)}`
         );
-        // Skip this page and continue to next instead of aborting the entire category
+
+        if (totalPages === null) {
+          this.log.warn({ syscomCategoryId }, 'Pagina 1 fallo, categoria se reintentara en segunda pasada');
+          stats.skipped++;
+          stats.skippedError++;
+          return stats;
+        }
       }
 
       page++;
-    } while (page <= totalPages && (!pageLimit || page <= pageLimit));
+    } while (totalPages !== null && page <= totalPages && (!pageLimit || page <= pageLimit));
 
     return stats;
   }
