@@ -331,7 +331,7 @@ export class SyncService {
           seenProductIds.add(syscomId);
 
           try {
-            const outcome = await this.upsertProduct(product);
+            const outcome = await this.upsertProduct(product, syscomCategoryId);
             if (outcome === 'skipped') {
               stats.skipped++;
               stats.skippedNoCategory++;
@@ -364,7 +364,8 @@ export class SyncService {
   }
 
   private async upsertProduct(
-    product: SyscomProduct
+    product: SyscomProduct,
+    fallbackSyscomCategoryId?: string
   ): Promise<'created' | 'updated' | 'skipped'> {
     const syscomId = String(product.producto_id);
     const existing = await prisma.product.findFirst({ where: { syscomId } });
@@ -394,6 +395,16 @@ export class SyncService {
             break;
           }
         }
+      }
+    }
+
+    // Fallback: use the category we are currently syncing from
+    if (!categoryId && fallbackSyscomCategoryId) {
+      const fallbackCategory = await prisma.category.findFirst({
+        where: { syscomId: fallbackSyscomCategoryId },
+      });
+      if (fallbackCategory) {
+        categoryId = fallbackCategory.id;
       }
     }
 
