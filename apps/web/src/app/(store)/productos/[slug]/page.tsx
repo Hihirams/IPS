@@ -256,9 +256,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               </span>
             )}
             {product.stockStatus === 'out_of_stock' && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600 ring-1 ring-slate-200">
-                <span className="h-2 w-2 rounded-full bg-slate-400" />
-                Agotado
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 ring-1 ring-amber-200">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                Entrega en aproximadamente 4 días hábiles
               </span>
             )}
           </div>
@@ -272,17 +272,15 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           )}
 
           {/* Selector de cantidad + Agregar al carrito */}
-          {product.stockStatus !== 'out_of_stock' && (
-            <div className="space-y-3">
-              <AddToCartControls productId={product.id} />
-              <Link
-                href="/carrito"
-                className="block w-full rounded-xl border-2 border-indigo-600 py-3 text-center text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"
-              >
-                Comprar Ahora
-              </Link>
-            </div>
-          )}
+          <div className="space-y-3">
+            <AddToCartControls productId={product.id} />
+            <Link
+              href="/carrito"
+              className="block w-full rounded-xl border-2 border-indigo-600 py-3 text-center text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"
+            >
+              Comprar Ahora
+            </Link>
+          </div>
 
           {/* Info adicional */}
           <div className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 p-4">

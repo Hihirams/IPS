@@ -128,17 +128,8 @@ export async function checkoutRoutes(app: FastifyInstance) {
         });
       }
 
-      // Verificar que no hay alertas de stock
-      if (summary.stockAlerts.length > 0) {
-        return reply.status(400).send({
-          success: false,
-          error: {
-            code: 'STOCK_ALERT',
-            message: 'Algunos productos no tienen stock suficiente.',
-            details: summary.stockAlerts,
-          },
-        });
-      }
+      // Stock alerts are informational only — do not block checkout
+      // Products with 0 stock may have extended delivery times
 
       // Crear PaymentIntent en Stripe
       const amountInCents = Math.round(summary.total * 100);

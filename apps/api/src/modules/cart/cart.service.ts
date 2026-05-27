@@ -61,10 +61,6 @@ export async function addItemToCart(
     return { success: false, error: 'Producto no encontrado o inactivo.' };
   }
 
-  if (product.stock < quantity) {
-    return { success: false, error: `Stock insuficiente. Disponibles: ${product.stock}` };
-  }
-
   // Verificar límite de items distintos
   const existingItems = await prisma.cartItem.count({ where: { cartId } });
 
@@ -124,10 +120,6 @@ export async function updateItemQuantity(
 
   if (quantity > 99) {
     return { success: false, error: 'Máximo 99 unidades por producto.' };
-  }
-
-  if (item.product.stock < quantity) {
-    return { success: false, error: `Stock insuficiente. Disponibles: ${item.product.stock}` };
   }
 
   await prisma.cartItem.update({

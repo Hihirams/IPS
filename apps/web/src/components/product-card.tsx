@@ -35,14 +35,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
 
-        <div className="absolute left-2 top-2 flex flex-col gap-1">
-          {product.stockStatus === 'out_of_stock' && (
-            <span className="rounded bg-slate-600 px-2 py-0.5 text-xs font-bold text-white">
-              Agotado
-            </span>
-          )}
         </div>
-      </div>
 
       <div className="mt-3 flex flex-1 flex-col">
         {product.brand && (

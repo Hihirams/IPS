@@ -103,7 +103,7 @@ export async function validateCart(userId: string): Promise<{
       });
     }
 
-    // Verificar stock
+    // Verificar stock (informativo, no bloqueante)
     if (product.stock < item.quantity) {
       stockAlerts.push({
         productId: product.id,
@@ -111,7 +111,6 @@ export async function validateCart(userId: string): Promise<{
         requested: item.quantity,
         available: product.stock,
       });
-      continue;
     }
 
     validItems.push({
