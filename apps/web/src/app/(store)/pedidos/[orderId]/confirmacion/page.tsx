@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { formatPrice } from '@/lib/utils';
 
 /**
  * Página de confirmación de pedido.
@@ -78,7 +79,7 @@ export default function OrderConfirmationPage() {
                   {item.productName} x {item.quantity}
                 </span>
                 <span className="font-medium text-slate-900">
-                  ${(item.unitPrice * item.quantity).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                  {formatPrice(item.unitPrice * item.quantity)}
                 </span>
               </div>
             ))}
@@ -87,7 +88,7 @@ export default function OrderConfirmationPage() {
           <div className="mt-4 border-t border-slate-200 pt-4">
             <div className="flex justify-between text-lg font-semibold">
               <span>Total pagado</span>
-              <span>${order.total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+              <span>{formatPrice(order.total)}</span>
             </div>
           </div>
         </div>

@@ -225,6 +225,8 @@ export function toPublicProduct(
 
   return {
     ...(rest as Omit<typeof rest, 'cost'>),
+    price: Number(rest.price),
+    comparePrice: rest.comparePrice != null ? Number(rest.comparePrice) : null,
     stockStatus: getStockStatus(Number(stock), Number(lowStockThreshold)),
   } as PublicProduct;
 }

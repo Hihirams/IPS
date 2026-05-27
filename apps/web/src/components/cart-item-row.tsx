@@ -1,6 +1,7 @@
 'use client';
 
 import { useCart } from './cart-provider';
+import { formatPrice } from '@/lib/utils';
 
 interface CartItemRowProps {
   item: {
@@ -101,7 +102,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
 
           {/* Subtotal */}
           <span className="text-sm font-semibold text-slate-900">
-            ${subtotal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+            {formatPrice(subtotal)}
           </span>
         </div>
       </div>

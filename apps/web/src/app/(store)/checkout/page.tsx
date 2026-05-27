@@ -7,6 +7,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import { PaymentForm } from '@/components/payment-form';
 import { AddressForm } from '@/components/address-form';
 import { apiFetch } from '@/lib/csrf';
+import { formatPrice } from '@/lib/utils';
 import type { Address, CheckoutSummary } from '@ecommerce/types';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -270,11 +271,11 @@ export default function CheckoutPage() {
                   <div className="flex-1">
                     <p className="font-medium text-slate-900">{item.name}</p>
                     <p className="text-sm text-slate-500">
-                      {item.quantity} x ${item.unitPrice.toLocaleString('es-MX')}
+                      {item.quantity} x {formatPrice(item.unitPrice)}
                     </p>
                   </div>
                   <span className="font-medium text-slate-900">
-                    ${(item.unitPrice * item.quantity).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                    {formatPrice(item.unitPrice * item.quantity)}
                   </span>
                 </div>
               ))}
@@ -283,21 +284,21 @@ export default function CheckoutPage() {
             <div className="mt-4 space-y-2 border-t border-slate-200 pt-4 text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-600">Subtotal</span>
-                <span>${summary.subtotal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                <span>{formatPrice(summary.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Envío</span>
                 <span>
-                  {summary.shipping === 0 ? 'Gratis' : `$${summary.shipping.toLocaleString('es-MX')}`}
+                  {summary.shipping === 0 ? 'Gratis' : formatPrice(summary.shipping)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">IVA (16%)</span>
-                <span>${summary.tax.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                <span>{formatPrice(summary.tax)}</span>
               </div>
               <div className="flex justify-between text-lg font-semibold">
                 <span>Total</span>
-                <span>${summary.total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                <span>{formatPrice(summary.total)}</span>
               </div>
             </div>
           </div>
@@ -308,7 +309,7 @@ export default function CheckoutPage() {
               <ul className="mt-1 text-sm text-yellow-700">
                 {summary.priceAlerts.map((alert) => (
                   <li key={alert.productId}>
-                    {alert.productName}: ${alert.oldPrice.toLocaleString('es-MX')} → ${alert.newPrice.toLocaleString('es-MX')}
+                    {alert.productName}: {formatPrice(alert.oldPrice)} → {formatPrice(alert.newPrice)}
                   </li>
                 ))}
               </ul>

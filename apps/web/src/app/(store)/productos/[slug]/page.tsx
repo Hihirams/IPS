@@ -4,6 +4,7 @@ import { AddToCartControls } from '@/components/add-to-cart-controls';
 import { StarRating } from '@/components/star-rating';
 import { ProductCard } from '@/components/product-card';
 import { api } from '@/lib/api';
+import { formatPrice } from '@/lib/utils';
 import type { PublicProduct, PublicProductDetail } from '@ecommerce/types';
 import type { Metadata } from 'next';
 
@@ -66,11 +67,7 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
     };
   }
 
-  const discount = product.comparePrice
-    ? Math.round((1 - product.price / product.comparePrice) * 100)
-    : 0;
-
-  return {
+return {
     title: `${product.name} | Ecommerce Tech`,
     description: product.description.slice(0, 160),
     openGraph: {
@@ -79,7 +76,7 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
       images: product.images[0] ? [product.images[0]] : [],
     },
     twitter: {
-      card: 'summary_large_image',
+      card: 'summary_large_image' as const,
       title: product.name,
       description: product.description.slice(0, 160),
       images: product.images[0] ? [product.images[0]] : [],
@@ -87,7 +84,6 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
     other: {
       'product:price:amount': String(product.price),
       'product:price:currency': 'MXN',
-      ...(discount > 0 && { 'product:discount': `${discount}%` }),
     },
   };
 }
@@ -137,10 +133,6 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     ? await getRelatedProducts(categorySlug, slug)
     : [];
 
-  const discount = product.comparePrice
-    ? Math.round((1 - product.price / product.comparePrice) * 100)
-    : 0;
-
   // Filter specs to show meaningful ones
   const specs = product.specs ?? {};
   const specsToHide = new Set(['syscomLink', 'iconoSuperiorDerecho', 'iconoInferiorDerecho', 'iconoSuperiorIzquierdo', 'iconoInferiorIzquierdo']);
@@ -182,15 +174,6 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                 <svg className="h-20 w-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-              </div>
-            )}
-
-            {/* Badge de descuento */}
-            {discount > 0 && (
-              <div className="absolute left-3 top-3">
-                <span className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-bold text-white shadow-lg">
-                  -{discount}%
-                </span>
               </div>
             )}
           </div>
@@ -251,22 +234,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           </div>
 
           {/* Precios */}
-          <div className="rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white p-5">
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-bold text-slate-900">
-                ${product.price.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-              </span>
-              {product.comparePrice && (
-                <span className="text-lg text-slate-400 line-through">
-                  ${product.comparePrice.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                </span>
-              )}
-              {discount > 0 && (
-                <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-sm font-semibold text-red-700">
-                  Ahorras {discount}%
-                </span>
-              )}
-            </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <span className="text-3xl font-bold text-slate-900">
+              {formatPrice(product.price)}
+            </span>
             <p className="mt-1 text-xs text-slate-500">Precio en MXN + IVA</p>
           </div>
 

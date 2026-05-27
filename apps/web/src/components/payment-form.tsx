@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { formatPrice } from '@/lib/utils';
 
 interface PaymentFormProps {
   clientSecret: string;
@@ -77,7 +78,7 @@ export function PaymentForm({ total, returnUrl, onSuccess, onError }: PaymentFor
         <div className="flex items-center justify-between">
           <span className="text-sm text-slate-600">Total a pagar</span>
           <span className="text-2xl font-bold text-slate-900">
-            ${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+            {formatPrice(total)}
           </span>
         </div>
         <p className="mt-2 text-xs text-slate-500">
@@ -111,7 +112,7 @@ export function PaymentForm({ total, returnUrl, onSuccess, onError }: PaymentFor
             Procesando pago...
           </span>
         ) : (
-          `Pagar $${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`
+          `Pagar ${formatPrice(total)}`
         )}
       </button>
     </form>

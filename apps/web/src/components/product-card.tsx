@@ -2,27 +2,18 @@
 
 import Link from 'next/link';
 import type { PublicProduct } from '@ecommerce/types';
+import { formatPrice } from '@/lib/utils';
 
 interface ProductCardProps {
   product: PublicProduct;
 }
 
-/**
- * Tarjeta de producto para el catálogo.
- *
- * Muestra imagen, nombre, precio, marca, descuento y estado de stock.
- */
 export function ProductCard({ product }: ProductCardProps) {
-  const discount = product.comparePrice
-    ? Math.round((1 - product.price / product.comparePrice) * 100)
-    : 0;
-
   return (
     <Link
       href={`/productos/${product.slug}`}
       className="group flex flex-col rounded-xl border border-slate-200 bg-white p-4 transition hover:shadow-md"
     >
-      {/* Imagen */}
       <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-slate-100">
         {product.images[0] ? (
           <img
@@ -44,18 +35,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
 
-        {/* Badges */}
         <div className="absolute left-2 top-2 flex flex-col gap-1">
-          {discount > 0 && (
-            <span className="rounded bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
-              -{discount}%
-            </span>
-          )}
-          {product.isFeatured && (
-            <span className="rounded bg-blue-600 px-2 py-0.5 text-xs font-bold text-white">
-              Destacado
-            </span>
-          )}
           {product.stockStatus === 'out_of_stock' && (
             <span className="rounded bg-slate-600 px-2 py-0.5 text-xs font-bold text-white">
               Agotado
@@ -64,7 +44,6 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
 
-      {/* Info */}
       <div className="mt-3 flex flex-1 flex-col">
         {product.brand && (
           <span className="text-xs font-medium text-slate-500">{product.brand.name}</span>
@@ -74,16 +53,9 @@ export function ProductCard({ product }: ProductCardProps) {
         </h3>
 
         <div className="mt-auto pt-3">
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-slate-900">
-              ${product.price.toLocaleString('es-MX')}
-            </span>
-            {product.comparePrice && (
-              <span className="text-sm text-slate-400 line-through">
-                ${product.comparePrice.toLocaleString('es-MX')}
-              </span>
-            )}
-          </div>
+          <span className="text-lg font-bold text-slate-900">
+            {formatPrice(product.price)}
+          </span>
         </div>
       </div>
     </Link>

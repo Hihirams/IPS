@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCart } from '@/components/cart-provider';
 import { CartItemRow } from '@/components/cart-item-row';
+import { formatPrice } from '@/lib/utils';
 
 /**
  * Página del carrito de compras.
@@ -72,29 +73,29 @@ export default function CartPage() {
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-600">Subtotal</span>
-                <span className="font-medium">${cart.subtotal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                <span className="font-medium">{formatPrice(cart.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Envío</span>
                 <span className="font-medium">
-                  {shipping === 0 ? 'Gratis' : `$${shipping.toLocaleString('es-MX')}`}
+                  {shipping === 0 ? 'Gratis' : formatPrice(shipping)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">IVA (16%)</span>
-                <span className="font-medium">${tax.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                <span className="font-medium">{formatPrice(tax)}</span>
               </div>
               <div className="border-t border-slate-200 pt-2">
                 <div className="flex justify-between text-lg font-semibold">
                   <span>Total</span>
-                  <span>${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                  <span>{formatPrice(total)}</span>
                 </div>
               </div>
             </div>
 
             {cart.subtotal < 1000 && (
               <p className="mt-3 text-xs text-slate-500">
-                Te faltan ${(1000 - cart.subtotal).toLocaleString('es-MX')} para envío gratis.
+                Te faltan {formatPrice(1000 - cart.subtotal)} para envío gratis.
               </p>
             )}
 
@@ -113,7 +114,7 @@ export default function CartPage() {
               <ul className="mt-1 list-inside list-disc text-sm text-yellow-700">
                 {cart.priceAlerts.map((alert) => (
                   <li key={alert.productId}>
-                    {alert.productName}: ${alert.oldPrice.toLocaleString('es-MX')} → ${alert.newPrice.toLocaleString('es-MX')}
+                    {alert.productName}: {formatPrice(alert.oldPrice)} → {formatPrice(alert.newPrice)}
                   </li>
                 ))}
               </ul>
