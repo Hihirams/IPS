@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import { DISPLAY_CATEGORIES, findDisplayCategory } from '@/lib/categories';
 
 interface FilterSidebarProps {
   categories: Array<Record<string, unknown>>;
@@ -8,15 +9,11 @@ interface FilterSidebarProps {
   searchParams: Record<string, string | undefined>;
 }
 
-/**
- * Sidebar de filtros para el catálogo de productos.
- *
- * Permite filtrar por categoría, marca, rango de precio y stock.
- * Los filtros actualizan la URL para SEO.
- */
 export function FilterSidebar({ categories, brands, searchParams }: FilterSidebarProps) {
   const router = useRouter();
   const currentParams = useSearchParams();
+
+  const displayCats = computeDisplayCategories(categories);
 
   const updateFilters = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(currentParams.toString());
@@ -29,7 +26,6 @@ export function FilterSidebar({ categories, brands, searchParams }: FilterSideba
       }
     });
 
-    // Siempre resetear pagina al filtrar
     params.delete('pagina');
 
     router.push(`/productos?${params.toString()}`);
@@ -48,7 +44,6 @@ export function FilterSidebar({ categories, brands, searchParams }: FilterSideba
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-slate-900">Filtros</h2>
         {hasFilters && (
@@ -61,29 +56,31 @@ export function FilterSidebar({ categories, brands, searchParams }: FilterSideba
         )}
       </div>
 
-      {/* Categorías */}
-      {categories.length > 0 && (
+      {displayCats.length > 0 && (
         <div>
           <h3 className="mb-3 text-sm font-medium text-slate-900">Categorías</h3>
           <div className="space-y-2">
-            {categories.map((cat) => (
+            {displayCats.map((dc) => (
               <label
-                key={cat.id as string}
+                key={dc.slug}
                 className="flex cursor-pointer items-center gap-2 text-sm"
               >
                 <input
-                  type="checkbox"
-                  className="rounded border-slate-300 text-slate-900 focus:ring-slate-900"
-                  checked={searchParams.categoria === (cat.slug as string)}
+                  type="radio"
+                  name="categoria"
+                  className="border-slate-300 text-slate-900 focus:ring-slate-900"
+                  checked={searchParams.categoria === dc.slug}
                   onChange={(e) =>
                     updateFilters({
-                      categoria: e.target.checked ? (cat.slug as string) : null,
+                      categoria: e.target.checked ? dc.slug : null,
                     })
                   }
                 />
-                <span className="text-slate-700">{cat.name as string}</span>
+                <span className="text-slate-700">
+                  {dc.icon} {dc.name}
+                </span>
                 <span className="ml-auto text-xs text-slate-400">
-                  {(cat._count as Record<string, number>)?.products ?? 0}
+                  {dc.productCount}
                 </span>
               </label>
             ))}
@@ -91,7 +88,6 @@ export function FilterSidebar({ categories, brands, searchParams }: FilterSideba
         </div>
       )}
 
-      {/* Marcas */}
       {brands.length > 0 && (
         <div>
           <h3 className="mb-3 text-sm font-medium text-slate-900">Marcas</h3>
@@ -102,8 +98,9 @@ export function FilterSidebar({ categories, brands, searchParams }: FilterSideba
                 className="flex cursor-pointer items-center gap-2 text-sm"
               >
                 <input
-                  type="checkbox"
-                  className="rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                  type="radio"
+                  name="marca"
+                  className="border-slate-300 text-slate-900 focus:ring-slate-900"
                   checked={searchParams.marca === (brand.slug as string)}
                   onChange={(e) =>
                     updateFilters({
@@ -118,7 +115,6 @@ export function FilterSidebar({ categories, brands, searchParams }: FilterSideba
         </div>
       )}
 
-      {/* Rango de precio */}
       <div>
         <h3 className="mb-3 text-sm font-medium text-slate-900">Precio</h3>
         <div className="flex items-center gap-2">
@@ -144,7 +140,6 @@ export function FilterSidebar({ categories, brands, searchParams }: FilterSideba
         </div>
       </div>
 
-      {/* Solo en stock */}
       <div>
         <label className="flex cursor-pointer items-center gap-2 text-sm">
           <input
@@ -162,4 +157,38 @@ export function FilterSidebar({ categories, brands, searchParams }: FilterSideba
       </div>
     </div>
   );
+}
+
+function computeDisplayCategories(
+  categories: Array<Record<string, unknown>>
+): Array<{ slug: string; name: string; icon: string; productCount: number; syscomSlugs: string[] }> {
+  const map = new Map<string, { productCount: number; syscomSlugs: string[] }>();
+
+  for (const dc of DISPLAY_CATEGORIES) {
+    map.set(dc.slug, { productCount: 0, syscomSlugs: [] });
+  }
+
+  for (const cat of categories) {
+    const name = (cat.name as string) ?? '';
+    const slug = (cat.slug as string) ?? '';
+    const count = (cat._count as Record<string, number> | undefined)?.products ?? 0;
+    const dc = findDisplayCategory(name);
+
+    if (dc) {
+      const entry = map.get(dc.slug)!;
+      entry.productCount += count;
+      entry.syscomSlugs.push(slug);
+    }
+  }
+
+  return DISPLAY_CATEGORIES.filter((dc) => (map.get(dc.slug)?.productCount ?? 0) > 0).map((dc) => {
+    const entry = map.get(dc.slug)!;
+    return {
+      slug: dc.slug,
+      name: dc.name,
+      icon: dc.icon,
+      productCount: entry.productCount,
+      syscomSlugs: entry.syscomSlugs,
+    };
+  });
 }

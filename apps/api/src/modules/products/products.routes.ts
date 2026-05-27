@@ -88,6 +88,19 @@ export async function productRoutes(app: FastifyInstance) {
       }
     }
 
+    if (query.categories) {
+      const slugs = query.categories.split(',').map((s) => s.trim()).filter(Boolean);
+      if (slugs.length > 0) {
+        const matchedCats = await prisma.category.findMany({
+          where: { slug: { in: slugs }, isActive: true },
+          select: { id: true },
+        });
+        if (matchedCats.length > 0) {
+          (where as Record<string, unknown>).categoryId = { in: matchedCats.map((c) => c.id) };
+        }
+      }
+    }
+
     if (query.minPrice !== undefined) {
       (where as Record<string, unknown>).price = {
         ...(where as Record<string, unknown>).price as object,

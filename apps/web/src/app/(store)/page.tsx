@@ -1,21 +1,21 @@
 import Link from 'next/link';
 import { ProductCard } from '@/components/product-card';
 import { api } from '@/lib/api';
+import { DISPLAY_CATEGORIES, findDisplayCategory } from '@/lib/categories';
 import type { Category, PublicProduct } from '@ecommerce/types';
 
-/**
- * Página principal del ecommerce.
- *
- * Muestra productos destacados (o recientes si no hay destacados),
- * categorías principales con conteo y hero banner.
- * Usa SSR con revalidación cada 5 minutos.
- */
-
-// Revalidar cada 5 minutos
 export const revalidate = 300;
 
 type HomeCategory = Pick<Category, 'id' | 'name' | 'slug' | 'image'> & {
   _count?: { products?: number };
+};
+
+type DisplayCategoryWithCount = {
+  name: string;
+  slug: string;
+  icon: string;
+  description: string;
+  productCount: number;
 };
 
 async function getFeaturedProducts(): Promise<PublicProduct[]> {
@@ -53,25 +53,41 @@ async function getCategories(): Promise<HomeCategory[]> {
   try {
     const res = await api('/api/categories');
     const json = await res.json();
-    const allCategories = (json.data ?? []) as HomeCategory[];
-    // Solo mostrar categorías que tengan productos y sean de nivel 1
-    return allCategories
-      .filter((cat) => (cat._count?.products ?? 0) > 0)
-      .slice(0, 9);
+    return (json.data ?? []) as HomeCategory[];
   } catch {
     return [];
   }
 }
 
+function buildDisplayCategories(allCategories: HomeCategory[]): DisplayCategoryWithCount[] {
+  const counts = new Map<string, number>();
+  for (const dc of DISPLAY_CATEGORIES) {
+    counts.set(dc.slug, 0);
+  }
+
+  for (const cat of allCategories) {
+    const dc = findDisplayCategory(cat.name);
+    if (dc) {
+      const current = counts.get(dc.slug) ?? 0;
+      const catCount = cat._count?.products ?? 0;
+      counts.set(dc.slug, current + catCount);
+    }
+  }
+
+  return DISPLAY_CATEGORIES
+    .map((dc) => ({ ...dc, productCount: counts.get(dc.slug) ?? 0 }))
+    .filter((dc) => dc.productCount > 0);
+}
+
 export default async function HomePage() {
-  const [featuredProducts, latestProducts, categories] = await Promise.all([
+  const [featuredProducts, latestProducts, allCategories] = await Promise.all([
     getFeaturedProducts(),
     getLatestProducts(),
     getCategories(),
   ]);
 
-  // Determinar si los "featured" son realmente destacados o un fallback
   const hasFeatured = featuredProducts.some((p) => p.isFeatured);
+  const displayCategories = buildDisplayCategories(allCategories);
 
   return (
     <div>
@@ -119,7 +135,7 @@ export default async function HomePage() {
       </section>
 
       {/* Categorías */}
-      {categories.length > 0 && (
+      {displayCategories.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-16">
           <div className="flex items-center justify-between">
             <div>
@@ -134,21 +150,19 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((cat) => (
+            {displayCategories.map((cat) => (
               <Link
-                key={cat.id}
+                key={cat.slug}
                 href={`/productos?categoria=${cat.slug}`}
                 className="group relative flex items-center gap-4 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 transition-all duration-200 hover:border-indigo-200 hover:shadow-md hover:shadow-indigo-500/5"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 transition-colors group-hover:from-indigo-100 group-hover:to-blue-100">
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-50 to-blue-50 text-2xl transition-colors group-hover:from-indigo-100 group-hover:to-blue-100">
+                  {cat.icon}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold text-slate-900 truncate">{cat.name}</h3>
                   <p className="text-xs text-slate-500">
-                    {cat._count?.products ?? 0} productos
+                    {cat.productCount} productos
                   </p>
                 </div>
                 <svg className="h-5 w-5 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">

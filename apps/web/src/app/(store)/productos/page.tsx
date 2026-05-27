@@ -5,14 +5,8 @@ import { ProductGrid } from '@/components/product-grid';
 import { FilterSidebar } from '@/components/filter-sidebar';
 import { Pagination } from '@/components/pagination';
 import { api } from '@/lib/api';
+import { DISPLAY_CATEGORIES, findDisplayCategory } from '@/lib/categories';
 import type { PublicProduct } from '@ecommerce/types';
-
-/**
- * Página de catálogo de productos.
- *
- * Soporta filtros por URL para SEO:
- * /productos?categoria=laptops&marca=apple&pagina=2
- */
 
 interface CatalogPageProps {
   searchParams: Promise<{
@@ -28,17 +22,20 @@ interface CatalogPageProps {
   }>;
 }
 
-// Revalidar cada 5 minutos
 export const revalidate = 300;
 
-async function getProducts(searchParams: Awaited<CatalogPageProps['searchParams']>) {
+async function getProducts(searchParams: Awaited<CatalogPageProps['searchParams']>, syscomCategorySlugs?: string[]) {
   const page = Number(searchParams.pagina) || 1;
   const limit = 12;
 
   const params = new URLSearchParams();
   params.set('page', String(page));
   params.set('limit', String(limit));
-  if (searchParams.categoria) params.set('category', searchParams.categoria);
+
+  if (syscomCategorySlugs && syscomCategorySlugs.length > 0) {
+    params.set('categories', syscomCategorySlugs.join(','));
+  }
+
   if (searchParams.marca) params.set('brand', searchParams.marca);
   if (searchParams.minPrecio) params.set('minPrice', searchParams.minPrecio);
   if (searchParams.maxPrecio) params.set('maxPrice', searchParams.maxPrecio);
@@ -82,27 +79,57 @@ async function getBrands() {
   }
 }
 
+function resolveDisplayCategoryToSyscomSlugs(
+  displaySlug: string,
+  allCategories: Array<{ name: string; slug: string }>
+): string[] {
+  const dc = DISPLAY_CATEGORIES.find((c) => c.slug === displaySlug);
+  if (!dc) return [];
+
+  const slugs: string[] = [];
+  for (const cat of allCategories) {
+    const matched = findDisplayCategory(cat.name);
+    if (matched && matched.slug === dc.slug) {
+      slugs.push(cat.slug);
+    }
+  }
+  return slugs;
+}
+
 export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const params = await searchParams;
-  const [{ products, meta }, categories, brands] = await Promise.all([
-    getProducts(params),
+  const [categories, brands] = await Promise.all([
     getCategories(),
     getBrands(),
   ]);
 
+  const syscomSlugs = params.categoria
+    ? resolveDisplayCategoryToSyscomSlugs(params.categoria, categories)
+    : undefined;
+
+  const { products, meta } = await getProducts(params, syscomSlugs);
+
   const currentPage = meta.page;
+
+  const displayCat = params.categoria
+    ? DISPLAY_CATEGORIES.find((c) => c.slug === params.categoria)
+    : undefined;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      {/* Breadcrumb */}
       <nav className="mb-6 text-sm text-slate-500">
         <Link href="/" className="hover:text-slate-900">Inicio</Link>
         <span className="mx-2">/</span>
-        <span className="text-slate-900">Productos</span>
+        <Link href="/productos" className="hover:text-slate-900">Productos</Link>
+        {displayCat && (
+          <>
+            <span className="mx-2">/</span>
+            <span className="text-slate-900">{displayCat.icon} {displayCat.name}</span>
+          </>
+        )}
       </nav>
 
       <div className="flex flex-col gap-8 lg:flex-row">
-        {/* Sidebar de filtros */}
         <aside className="w-full shrink-0 lg:w-64">
           <Suspense fallback={null}>
             <FilterSidebar
@@ -113,11 +140,14 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
           </Suspense>
         </aside>
 
-        {/* Grid de productos */}
         <div className="flex-1">
           <div className="mb-4 flex items-center justify-between">
             <h1 className="text-2xl font-bold text-slate-900">
-              {params.busqueda ? `Resultados para "${params.busqueda}"` : 'Todos los Productos'}
+              {params.busqueda
+                ? `Resultados para "${params.busqueda}"`
+                : displayCat
+                  ? `${displayCat.icon} ${displayCat.name}`
+                  : 'Todos los Productos'}
             </h1>
             <span className="text-sm text-slate-600">{meta.total} resultados</span>
           </div>
@@ -135,7 +165,6 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
                   ))}
                 </div>
 
-                {/* Paginación */}
                 <div className="mt-8">
                   <Pagination
                     currentPage={currentPage}

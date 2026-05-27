@@ -5,6 +5,7 @@ import { StarRating } from '@/components/star-rating';
 import { ProductCard } from '@/components/product-card';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
+import { getDisplayCategoryForProduct } from '@/lib/categories';
 import type { PublicProduct, PublicProductDetail } from '@ecommerce/types';
 import type { Metadata } from 'next';
 
@@ -133,6 +134,8 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     ? await getRelatedProducts(categorySlug, slug)
     : [];
 
+  const displayCat = getDisplayCategoryForProduct(product.category);
+
   // Filter specs to show meaningful ones
   const specs = product.specs ?? {};
   const specsToHide = new Set(['syscomLink', 'iconoSuperiorDerecho', 'iconoInferiorDerecho', 'iconoSuperiorIzquierdo', 'iconoInferiorIzquierdo']);
@@ -147,11 +150,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         <Link href="/" className="hover:text-slate-900">Inicio</Link>
         <span className="mx-2">/</span>
         <Link href="/productos" className="hover:text-slate-900">Productos</Link>
-        {product.category && (
+        {displayCat && (
           <>
             <span className="mx-2">/</span>
-            <Link href={`/productos?categoria=${product.category.slug}`} className="hover:text-slate-900">
-              {product.category.name}
+            <Link href={`/productos?categoria=${displayCat.slug}`} className="hover:text-slate-900">
+              {displayCat.icon} {displayCat.name}
             </Link>
           </>
         )}
@@ -200,24 +203,24 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         {/* Información del producto */}
         <div className="space-y-6">
           <div>
-            <div className="flex items-center gap-2">
-              {product.brand && (
-                <Link
-                  href={`/productos?marca=${product.brand.slug}`}
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
-                >
-                  {product.brand.name}
-                </Link>
-              )}
-              {product.category && (
-                <Link
-                  href={`/productos?categoria=${product.category.slug}`}
-                  className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-200"
-                >
-                  {product.category.name}
-                </Link>
-              )}
-            </div>
+<div className="flex items-center gap-2">
+               {product.brand && (
+                 <Link
+                   href={`/productos?marca=${product.brand.slug}`}
+                   className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                 >
+                   {product.brand.name}
+                 </Link>
+               )}
+               {displayCat && (
+                 <Link
+                   href={`/productos?categoria=${displayCat.slug}`}
+                   className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-200"
+                 >
+                   {displayCat.icon} {displayCat.name}
+                 </Link>
+               )}
+             </div>
             <h1 className="mt-2 text-2xl font-bold text-slate-900 lg:text-3xl">{product.name}</h1>
 
             {product.reviewSummary && product.reviewSummary.totalReviews > 0 && (
