@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
  * - Botón X para limpiar
  * - Ctrl+K para focus
  */
-export function SearchBar() {
+export function SearchBar({ variant }: { variant?: 'default' | 'pill' } = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('busqueda') ?? '');
@@ -61,7 +61,52 @@ export function SearchBar() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [performSearch]);
 
-  return (
+  const isPill = variant === 'pill';
+
+  return isPill ? (
+    <div className="flex w-full items-center gap-0">
+      <svg
+        className="h-[15px] w-[15px] shrink-0 text-black/28"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        />
+      </svg>
+      <input
+        id="search-input"
+        type="text"
+        value={query}
+        onChange={(e) => {
+          hasUserEditedQuery.current = true;
+          setQuery(e.target.value);
+        }}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        placeholder="Buscar productos, marcas, categorías…"
+        className="w-full bg-transparent px-2.5 text-sm text-slate-900 placeholder:text-black/28 focus:outline-none"
+      />
+      {query && (
+        <button
+          onClick={() => {
+            hasUserEditedQuery.current = true;
+            setQuery('');
+            performSearch('');
+          }}
+          className="rounded p-1 text-black/28 hover:bg-black/5 hover:text-black/50"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
+    </div>
+  ) : (
     <div className={`relative flex items-center rounded-lg border bg-white transition ${
       isFocused ? 'border-slate-900 ring-1 ring-slate-900' : 'border-slate-200'
     }`}>
