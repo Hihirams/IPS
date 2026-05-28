@@ -124,7 +124,8 @@ export async function validateCart(userId: string): Promise<{
     subtotal += currentPrice * item.quantity;
   }
 
-  const shipping = subtotal >= SHIPPING_FREE_THRESHOLD ? 0 : SHIPPING_FLAT;
+  const hasStripeTestProduct = validItems.some((item) => item.sku === 'STRIPE-TEST-10MXN');
+  const shipping = hasStripeTestProduct ? 0 : (subtotal >= SHIPPING_FREE_THRESHOLD ? 0 : SHIPPING_FLAT);
   const tax = Math.round(subtotal * TAX_RATE * 100) / 100;
   const total = Math.round((subtotal + shipping + tax) * 100) / 100;
 
