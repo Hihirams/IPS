@@ -54,6 +54,7 @@ Thumbs.db
 # Certificates and keys
 *.pem
 *.key
+stripecodex.txt
 
 # Uploads directory
 uploads/

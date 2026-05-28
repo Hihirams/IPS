@@ -77,9 +77,67 @@ async function main() {
     },
   });
 
+  const stripeTestBrand = await prisma.brand.upsert({
+    where: { slug: 'stripe-test' },
+    update: {},
+    create: {
+      name: 'Stripe Test',
+      slug: 'stripe-test',
+      logo: null,
+      isActive: true,
+    },
+  });
+
   // ==========================================
-  // 3. Productos (5 productos con specs realistas)
+  // 3. Productos (5 productos con specs realistas + 1 producto de prueba)
   // ==========================================
+  const stripeTestProduct = await prisma.product.upsert({
+    where: { sku: 'STRIPE-TEST-10MXN' },
+    update: {
+      name: 'Producto de prueba Stripe 10 MXN',
+      slug: 'producto-prueba-stripe-10-mxn',
+      description:
+        'Producto interno para validar cobros reales de Stripe con el monto minimo en MXN. No requiere envio fisico.',
+      specs: {
+        uso: 'Prueba de cobro real',
+        moneda: 'MXN',
+        montoBase: '10.00',
+      },
+      price: 10.0,
+      comparePrice: null,
+      cost: 0.0,
+      stock: 999,
+      lowStockThreshold: 5,
+      images: [],
+      isActive: true,
+      isFeatured: false,
+      categoryId: accesorios.id,
+      brandId: stripeTestBrand.id,
+    },
+    create: {
+      sku: 'STRIPE-TEST-10MXN',
+      name: 'Producto de prueba Stripe 10 MXN',
+      slug: 'producto-prueba-stripe-10-mxn',
+      description:
+        'Producto interno para validar cobros reales de Stripe con el monto minimo en MXN. No requiere envio fisico.',
+      specs: {
+        uso: 'Prueba de cobro real',
+        moneda: 'MXN',
+        montoBase: '10.00',
+      },
+      price: 10.0,
+      comparePrice: null,
+      cost: 0.0,
+      stock: 999,
+      lowStockThreshold: 5,
+      images: [],
+      isActive: true,
+      isFeatured: false,
+      categoryId: accesorios.id,
+      brandId: stripeTestBrand.id,
+    },
+  });
+
   const product1 = await prisma.product.upsert({
     where: { sku: 'MBP14-M3-512' },
     update: {},
@@ -332,8 +390,8 @@ async function main() {
 
   console.log('✅ Seed completado exitosamente:');
   console.log(`  - Categorías: ${[laptops.name, smartphones.name, accesorios.name].join(', ')}`);
-  console.log(`  - Marcas: ${[apple.name, samsung.name].join(', ')}`);
-  console.log(`  - Productos: ${[product1.name, product2.name, product3.name, product4.name, product5.name].join(', ')}`);
+  console.log(`  - Marcas: ${[apple.name, samsung.name, stripeTestBrand.name].join(', ')}`);
+  console.log(`  - Productos: ${[stripeTestProduct.name, product1.name, product2.name, product3.name, product4.name, product5.name].join(', ')}`);
   console.log(`  - Usuarios: ${admin.email} (ADMIN), ${normalUser.email} (USER)`);
   console.log(`  - Direcciones: 2`);
 }
