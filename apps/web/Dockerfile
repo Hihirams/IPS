@@ -51,7 +51,6 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV API_URL=${API_URL}
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
-RUN npm install -g pnpm@8.15.0
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -65,8 +64,6 @@ USER nextjs
 EXPOSE 8080
 
 ENV PORT=8080
-
-HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1
+ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "apps/web/server.js"]
