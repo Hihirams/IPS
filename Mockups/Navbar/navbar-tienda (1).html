@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiTienda — Navbar</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    background: #f0f0f2;
+    overflow: hidden;
+  }
+
+  /* subtle ambient */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 72% 8%,  rgba(180,190,225,0.18) 0%, transparent 65%),
+      radial-gradient(ellipse 45% 40% at 12% 92%, rgba(160,175,205,0.12) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 35% at 50% 50%, rgba(200,205,220,0.08) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ══════════════ TOP BAR ══════════════ */
+  .top-bar {
+    position: fixed;
+    top: 16px; left: 16px; right: 16px;
+    display: flex; align-items: center; gap: 8px;
+    z-index: 100;
+  }
+
+  /* glass base */
+  .glass {
+    background: rgba(255,255,255,0.68);
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    border: 0.5px solid rgba(0,0,0,0.09);
+    box-shadow: 0 2px 20px rgba(0,0,0,0.07), 0 0.5px 1px rgba(0,0,0,0.05);
+  }
+
+  .logo-pill {
+    height: 50px;
+    border-radius: 25px;
+    display: flex; align-items: center;
+    padding: 0 22px; gap: 9px;
+    cursor: pointer; flex-shrink: 0;
+    transition: background 0.18s;
+  }
+  .logo-pill:hover { background: rgba(255,255,255,0.88); }
+  .logo-star { font-size: 20px; color: rgba(0,0,0,0.82); line-height: 1; }
+  .logo-text { font-size: 16px; font-weight: 600; color: rgba(0,0,0,0.8); letter-spacing: -0.4px; white-space: nowrap; }
+
+  .search-wrap { flex: 1; display: flex; justify-content: center; }
+  .search-pill {
+    height: 50px; width: 440px;
+    border-radius: 25px;
+    display: flex; align-items: center;
+    padding: 0 20px; gap: 9px;
+    cursor: text;
+    transition: width 0.3s cubic-bezier(0.4,0,0.2,1), background 0.2s;
+  }
+  .search-pill:hover { width: 540px; background: rgba(255,255,255,0.9); }
+  .search-pill .ti-search { font-size: 15px; color: rgba(0,0,0,0.28); }
+  .search-pill span { font-size: 14px; color: rgba(0,0,0,0.28); }
+
+  .icon-pill {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; position: relative;
+    color: rgba(0,0,0,0.55); font-size: 19px;
+    transition: background 0.18s, transform 0.15s;
+  }
+  .icon-pill:hover { background: rgba(255,255,255,0.9); transform: scale(1.05); }
+  .badge {
+    position: absolute; top: 9px; right: 9px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #e74c3c; border: 1.5px solid #f0f0f2;
+  }
+
+  /* ══════════════ SIDE PILL ══════════════ */
+  .side-pill {
+    position: fixed;
+    top: 82px; left: 16px; bottom: 16px;
+    width: 56px;
+    border-radius: 28px;
+    display: flex; flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 0;
+    transition: width 0.34s cubic-bezier(0.4,0,0.2,1), border-radius 0.34s;
+    overflow: hidden; z-index: 90;
+  }
+  .side-pill.expanded { width: 210px; border-radius: 22px; }
+
+  .side-divider {
+    width: calc(100% - 28px);
+    height: 0.5px;
+    background: rgba(0,0,0,0.09);
+    margin: 6px 14px; flex-shrink: 0;
+  }
+
+  .sni {
+    width: 100%; min-height: 42px;
+    display: flex; align-items: center;
+    padding: 0 15px; gap: 12px;
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.15s;
+    border-radius: 0;
+    position: relative;
+  }
+  .sni:hover { background: rgba(0,0,0,0.04); }
+
+  .sni-ic {
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: rgba(0,0,0,0.36); flex-shrink: 0;
+    transition: color 0.18s;
+  }
+  .sni:hover .sni-ic { color: rgba(0,0,0,0.75); }
+
+  .sni-lbl {
+    font-size: 13.5px; font-weight: 400;
+    color: rgba(0,0,0,0.44); letter-spacing: -0.1px;
+    opacity: 0; flex: 1;
+    transition: opacity 0.18s 0.06s;
+  }
+  .side-pill.expanded .sni-lbl { opacity: 1; }
+  .sni:hover .sni-lbl { color: rgba(0,0,0,0.8); }
+
+  .sni-chev {
+    font-size: 11px; color: rgba(0,0,0,0.18);
+    opacity: 0; flex-shrink: 0;
+    transition: opacity 0.18s, transform 0.22s;
+  }
+  .side-pill.expanded .sni-chev { opacity: 1; }
+  .sni.panel-open .sni-chev { transform: rotate(90deg); color: rgba(0,0,0,0.38); }
+
+  .side-spacer { flex: 1; }
+
+  /* ══════════════ MEGA PANEL ══════════════ */
+  .mega-panel {
+    position: fixed;
+    top: 82px;
+    left: calc(16px + 56px + 12px); /* default: sidebar collapsed */
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(36px) saturate(220%);
+    -webkit-backdrop-filter: blur(36px) saturate(220%);
+    border: 0.5px solid rgba(0,0,0,0.09);
+    border-radius: 22px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.06);
+    padding: 0;
+    opacity: 0; pointer-events: none;
+    transform: translateX(-12px) scale(0.97);
+    transition: opacity 0.24s, transform 0.24s cubic-bezier(0.4,0,0.2,1), left 0.34s cubic-bezier(0.4,0,0.2,1), width 0.24s;
+    z-index: 80;
+    overflow: hidden;
+    min-width: 240px;
+    max-height: calc(100vh - 98px);
+    display: flex;
+  }
+
+  .mega-panel.visible {
+    opacity: 1; pointer-events: all;
+    transform: translateX(0) scale(1);
+  }
+  /* when sidebar is expanded push panel right */
+  .mega-panel.sidebar-wide {
+    left: calc(16px + 210px + 12px);
+  }
+
+  /* Column inside panel */
+  .mp-col {
+    min-width: 220px;
+    border-right: 0.5px solid rgba(0,0,0,0.07);
+    display: flex; flex-direction: column;
+    padding: 10px 0;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .mp-col:last-child { border-right: none; }
+
+  .mp-head {
+    padding: 8px 16px 10px;
+    font-size: 10px; font-weight: 600;
+    color: rgba(0,0,0,0.26); letter-spacing: 0.55px;
+    text-transform: uppercase;
+    border-bottom: 0.5px solid rgba(0,0,0,0.06);
+    margin-bottom: 4px; flex-shrink: 0;
+  }
+
+  .mp-item {
+    display: flex; align-items: center;
+    min-height: 38px; padding: 6px 16px; gap: 11px;
+    cursor: pointer; font-size: 13.5px;
+    color: rgba(0,0,0,0.54);
+    transition: background 0.14s, color 0.14s;
+    position: relative;
+  }
+  .mp-item:hover, .mp-item.sub-open {
+    background: rgba(0,0,0,0.04); color: rgba(0,0,0,0.86);
+  }
+  .mp-item .ti { font-size: 17px; color: rgba(0,0,0,0.26); flex-shrink: 0; }
+  .mp-item:hover .ti, .mp-item.sub-open .ti { color: rgba(0,0,0,0.52); }
+
+  .mp-tag {
+    margin-left: auto; font-size: 10px; font-weight: 500;
+    padding: 2px 8px; border-radius: 8px;
+    background: rgba(0,0,0,0.06); color: rgba(0,0,0,0.36);
+    flex-shrink: 0;
+  }
+  .mp-tag.hot { background: rgba(231,76,60,0.1); color: rgba(180,40,30,0.7); }
+  .mp-tag.new { background: rgba(39,174,96,0.1); color: rgba(30,130,70,0.7); }
+
+  .mp-chev {
+    margin-left: auto; font-size: 11px;
+    color: rgba(0,0,0,0.2); flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  .mp-item.sub-open .mp-chev { transform: rotate(90deg); color: rgba(0,0,0,0.38); }
+
+  /* third-level pill inside col */
+  .mp-sub-wrap {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.28s cubic-bezier(0.4,0,0.2,1);
+    background: rgba(0,0,0,0.025);
+    border-left: 0.5px solid rgba(0,0,0,0.07);
+    margin-left: 28px;
+  }
+  .mp-sub-wrap.open { max-height: 300px; }
+  .mp-sub-item {
+    display: flex; align-items: center;
+    height: 34px; padding: 0 14px; gap: 9px;
+    cursor: pointer; font-size: 12.5px;
+    color: rgba(0,0,0,0.42);
+    transition: background 0.14s, color 0.14s;
+  }
+  .mp-sub-item:hover { background: rgba(0,0,0,0.04); color: rgba(0,0,0,0.78); }
+  .mp-sub-item .ti { font-size: 14px; color: rgba(0,0,0,0.22); }
+
+  /* empty page bg */
+  .page-bg {
+    position: fixed; inset: 0;
+    z-index: 1;
+  }
+
+  /* blur overlay */
+  .blur-overlay {
+    position: fixed; inset: 0;
+    background: rgba(240,240,242,0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.28s;
+    z-index: 70;
+  }
+  .blur-overlay.active { opacity: 1; pointer-events: all; }
+</style>
+</head>
+<body>
+
+<div class="page-bg"></div>
+<div class="blur-overlay" id="blurOverlay" onclick="closeAll()"></div>
+
+<!-- ══ TOP BAR ══ -->
+<div class="top-bar">
+  <div class="logo-pill glass">
+    <span class="logo-star">★</span>
+    <span class="logo-text">MiTienda</span>
+  </div>
+
+  <div class="search-wrap">
+    <div class="search-pill glass">
+      <i class="ti ti-search"></i>
+      <span>Buscar productos, marcas, categorías…</span>
+    </div>
+  </div>
+
+  <div class="icon-pill glass" title="Lista de deseos">
+    <i class="ti ti-heart"></i>
+  </div>
+  <div class="icon-pill glass" title="Carrito">
+    <i class="ti ti-shopping-cart"></i>
+    <span class="badge"></span>
+  </div>
+  <div class="icon-pill glass" title="Mi cuenta">
+    <i class="ti ti-user"></i>
+  </div>
+</div>
+
+<!-- ══ SIDE PILL ══ -->
+<div class="side-pill glass" id="sidePill"
+  onmouseenter="expandSide()"
+  onmouseleave="collapseSide()">
+
+  <!-- Grupo: Tienda -->
+  <div class="sni" id="ni-inicio" onclick="openPanel('inicio', this)">
+    <div class="sni-ic"><i class="ti ti-home"></i></div>
+    <span class="sni-lbl">Inicio</span>
+    <i class="ti ti-chevron-right sni-chev"></i>
+  </div>
+  <div class="sni" id="ni-cat" onclick="openPanel('categorias', this)">
+    <div class="sni-ic"><i class="ti ti-grid-dots"></i></div>
+    <span class="sni-lbl">Categorías</span>
+    <i class="ti ti-chevron-right sni-chev"></i>
+  </div>
+  <div class="sni" id="ni-new" onclick="openPanel('novedades', this)">
+    <div class="sni-ic"><i class="ti ti-sparkles"></i></div>
+    <span class="sni-lbl">Novedades</span>
+    <i class="ti ti-chevron-right sni-chev"></i>
+  </div>
+  <div class="sni" id="ni-sale" onclick="openPanel('ofertas', this)">
+    <div class="sni-ic"><i class="ti ti-tag"></i></div>
+    <span class="sni-lbl">Ofertas</span>
+    <i class="ti ti-chevron-right sni-chev"></i>
+  </div>
+
+  <div class="side-divider"></div>
+
+  <!-- Grupo: Cuenta -->
+  <div class="sni" id="ni-orders" onclick="openPanel('pedidos', this)">
+    <div class="sni-ic"><i class="ti ti-package"></i></div>
+    <span class="sni-lbl">Mis pedidos</span>
+    <i class="ti ti-chevron-right sni-chev"></i>
+  </div>
+  <div class="sni" id="ni-wish" onclick="openPanel('favoritos', this)">
+    <div class="sni-ic"><i class="ti ti-heart"></i></div>
+    <span class="sni-lbl">Favoritos</span>
+    <i class="ti ti-chevron-right sni-chev"></i>
+  </div>
+  <div class="sni" id="ni-account" onclick="openPanel('cuenta', this)">
+    <div class="sni-ic"><i class="ti ti-user-circle"></i></div>
+    <span class="sni-lbl">Mi cuenta</span>
+    <i class="ti ti-chevron-right sni-chev"></i>
+  </div>
+
+  <div class="side-divider"></div>
+
+  <!-- Grupo: Soporte -->
+  <div class="sni" id="ni-help" onclick="openPanel('ayuda', this)">
+    <div class="sni-ic"><i class="ti ti-help"></i></div>
+    <span class="sni-lbl">Ayuda</span>
+    <i class="ti ti-chevron-right sni-chev"></i>
+  </div>
+  <div class="sni" id="ni-contact" onclick="openPanel('contacto', this)">
+    <div class="sni-ic"><i class="ti ti-message"></i></div>
+    <span class="sni-lbl">Contacto</span>
+    <i class="ti ti-chevron-right sni-chev"></i>
+  </div>
+
+  <div class="side-spacer"></div>
+
+  <div class="sni">
+    <div class="sni-ic"><i class="ti ti-settings"></i></div>
+    <span class="sni-lbl">Ajustes</span>
+  </div>
+</div>
+
+<!-- ══ MEGA PANEL ══ -->
+<div class="mega-panel" id="megaPanel"></div>
+
+<script>
+const sideEl  = document.getElementById('sidePill');
+const panelEl = document.getElementById('megaPanel');
+const blur    = document.getElementById('blurOverlay');
+
+let sideExpanded = false;
+let activeSection = null;
+
+/* ─── panel data ─── */
+const PANELS = {
+  inicio: {
+    cols: [
+      {
+        head: 'Inicio',
+        items: [
+          { icon:'ti-layout-dashboard', label:'Dashboard' },
+          { icon:'ti-trending-up',      label:'Más vendidos', tag:'Popular' },
+          { icon:'ti-star',             label:'Destacados' },
+          { icon:'ti-flame',            label:'Tendencias', tag:'Hot', tagClass:'hot' },
+        ]
+      }
+    ]
+  },
+  categorias: {
+    cols: [
+      {
+        head: 'Categorías',
+        items: [
+          { icon:'ti-device-mobile', label:'Tecnología', hasSub: true, sub: [
+            { icon:'ti-phone',       label:'Smartphones' },
+            { icon:'ti-headphones',  label:'Audio' },
+            { icon:'ti-laptop',      label:'Laptops' },
+            { icon:'ti-device-tv',   label:'TV y pantallas' },
+            { icon:'ti-camera',      label:'Fotografía' },
+          ]},
+          { icon:'ti-shirt',        label:'Moda y ropa', hasSub: true, sub: [
+            { icon:'ti-shirt',      label:'Hombre' },
+            { icon:'ti-dress',      label:'Mujer' },
+            { icon:'ti-baby-carriage', label:'Niños' },
+            { icon:'ti-shoe',       label:'Calzado' },
+          ]},
+          { icon:'ti-home',         label:'Hogar y deco', hasSub: true, sub: [
+            { icon:'ti-sofa',       label:'Muebles' },
+            { icon:'ti-lamp',       label:'Iluminación' },
+            { icon:'ti-tools-kitchen-2', label:'Cocina' },
+            { icon:'ti-bed',        label:'Dormitorio' },
+          ]},
+          { icon:'ti-barbell',      label:'Deporte', hasSub: true, sub: [
+            { icon:'ti-run',        label:'Running' },
+            { icon:'ti-swimming',   label:'Natación' },
+            { icon:'ti-bike',       label:'Ciclismo' },
+            { icon:'ti-yoga',       label:'Yoga y fitness' },
+          ]},
+          { icon:'ti-leaf',         label:'Salud y belleza', hasSub: true, sub: [
+            { icon:'ti-droplet',    label:'Skincare' },
+            { icon:'ti-heart-rate-monitor', label:'Suplementos' },
+            { icon:'ti-bottle',     label:'Perfumes' },
+          ]},
+          { icon:'ti-school',       label:'Librería y arte', hasSub: true, sub: [
+            { icon:'ti-book',       label:'Libros' },
+            { icon:'ti-pencil',     label:'Papelería' },
+            { icon:'ti-paint',      label:'Materiales de arte' },
+          ]},
+        ]
+      }
+    ]
+  },
+  novedades: {
+    cols: [
+      {
+        head: 'Novedades',
+        items: [
+          { icon:'ti-clock',         label:'Últimas 24 h', tag:'Nuevo', tagClass:'new' },
+          { icon:'ti-calendar-week', label:'Esta semana' },
+          { icon:'ti-award',         label:'Lanzamientos' },
+          { icon:'ti-eye',           label:'Pre-ventas' },
+        ]
+      }
+    ]
+  },
+  ofertas: {
+    cols: [
+      {
+        head: 'Ofertas',
+        items: [
+          { icon:'ti-percentage',    label:'Hasta 50% off', tag:'Hot', tagClass:'hot' },
+          { icon:'ti-clock-hour-4',  label:'Ofertas del día' },
+          { icon:'ti-gift',          label:'Bundles y packs' },
+          { icon:'ti-coin',          label:'Liquidación' },
+          { icon:'ti-credit-card',   label:'Meses sin intereses' },
+        ]
+      }
+    ]
+  },
+  pedidos: {
+    cols: [
+      {
+        head: 'Mis pedidos',
+        items: [
+          { icon:'ti-truck',         label:'En camino', tag:'2' },
+          { icon:'ti-check',         label:'Entregados' },
+          { icon:'ti-clock',         label:'En proceso' },
+          { icon:'ti-refresh',       label:'Devoluciones' },
+          { icon:'ti-file-invoice',  label:'Facturas' },
+        ]
+      }
+    ]
+  },
+  favoritos: {
+    cols: [
+      {
+        head: 'Favoritos',
+        items: [
+          { icon:'ti-heart',         label:'Mi lista', tag:'12' },
+          { icon:'ti-bell',          label:'Alertas de precio' },
+          { icon:'ti-share',         label:'Compartir lista' },
+        ]
+      }
+    ]
+  },
+  cuenta: {
+    cols: [
+      {
+        head: 'Mi cuenta',
+        items: [
+          { icon:'ti-user',          label:'Perfil' },
+          { icon:'ti-map-pin',       label:'Direcciones' },
+          { icon:'ti-credit-card',   label:'Métodos de pago' },
+          { icon:'ti-lock',          label:'Seguridad' },
+          { icon:'ti-bell',          label:'Notificaciones' },
+          { icon:'ti-logout',        label:'Cerrar sesión' },
+        ]
+      }
+    ]
+  },
+  ayuda: {
+    cols: [
+      {
+        head: 'Ayuda',
+        items: [
+          { icon:'ti-book',          label:'Preguntas frecuentes' },
+          { icon:'ti-truck',         label:'Envíos y entregas' },
+          { icon:'ti-receipt-refund',label:'Devoluciones' },
+          { icon:'ti-shield-check',  label:'Garantías' },
+        ]
+      }
+    ]
+  },
+  contacto: {
+    cols: [
+      {
+        head: 'Contacto',
+        items: [
+          { icon:'ti-message-dots',  label:'Chat en vivo' },
+          { icon:'ti-mail',          label:'Enviar correo' },
+          { icon:'ti-phone',         label:'Llamar soporte' },
+          { icon:'ti-brand-whatsapp',label:'WhatsApp' },
+        ]
+      }
+    ]
+  },
+};
+
+/* ─── build panel HTML ─── */
+function buildPanel(key) {
+  const data = PANELS[key];
+  if (!data) return '';
+  return data.cols.map(col => {
+    const items = col.items.map(item => {
+      const tag    = item.tag ? `<span class="mp-tag ${item.tagClass||''}">${item.tag}</span>` : '';
+      const chev   = item.hasSub ? `<i class="ti ti-chevron-right mp-chev"></i>` : tag;
+      const sub    = item.hasSub ? buildSub(item.sub) : '';
+      return `
+        <div class="mp-item" ${item.hasSub ? 'onclick="toggleSub(this)"' : ''}>
+          <i class="ti ${item.icon}"></i>${item.label}${chev}
+        </div>
+        ${sub}`;
+    }).join('');
+    return `<div class="mp-col"><div class="mp-head">${col.head}</div>${items}</div>`;
+  }).join('');
+}
+
+function buildSub(subs) {
+  const rows = subs.map(s =>
+    `<div class="mp-sub-item"><i class="ti ${s.icon}"></i>${s.label}</div>`
+  ).join('');
+  return `<div class="mp-sub-wrap">${rows}</div>`;
+}
+
+/* ─── toggle sub-accordion ─── */
+function toggleSub(el) {
+  const wrap = el.nextElementSibling;
+  if (!wrap || !wrap.classList.contains('mp-sub-wrap')) return;
+  const open = wrap.classList.contains('open');
+  // close others in same col
+  el.closest('.mp-col').querySelectorAll('.mp-sub-wrap.open').forEach(w => {
+    w.classList.remove('open');
+    w.previousElementSibling.classList.remove('sub-open');
+  });
+  if (!open) {
+    wrap.classList.add('open');
+    el.classList.add('sub-open');
+  }
+}
+
+/* ─── open section panel ─── */
+function openPanel(key, navEl) {
+  if (activeSection === key) { closeAll(); return; }
+  activeSection = key;
+
+  // mark active nav item
+  document.querySelectorAll('.sni').forEach(n => n.classList.remove('panel-open'));
+  navEl.classList.add('panel-open');
+
+  // build content
+  panelEl.innerHTML = buildPanel(key);
+
+  // position: align top with clicked item
+  const navRect = navEl.getBoundingClientRect();
+  panelEl.style.top = Math.max(82, navRect.top) + 'px';
+
+  // left: adapt to sidebar width
+  const sideW = sideExpanded ? 210 : 56;
+  panelEl.style.left = (16 + sideW + 12) + 'px';
+
+  panelEl.classList.remove('sidebar-wide');
+  if (sideExpanded) panelEl.classList.add('sidebar-wide');
+
+  panelEl.classList.add('visible');
+  blur.classList.add('active');
+}
+
+/* ─── sidebar expand/collapse ─── */
+function expandSide() {
+  sideExpanded = true;
+  sideEl.classList.add('expanded');
+  if (panelEl.classList.contains('visible')) {
+    panelEl.style.left = (16 + 210 + 12) + 'px';
+    panelEl.classList.add('sidebar-wide');
+  }
+}
+
+function collapseSide() {
+  sideExpanded = false;
+  sideEl.classList.remove('expanded');
+  if (panelEl.classList.contains('visible')) {
+    panelEl.style.left = (16 + 56 + 12) + 'px';
+    panelEl.classList.remove('sidebar-wide');
+  }
+}
+
+/* ─── close all ─── */
+function closeAll() {
+  activeSection = null;
+  panelEl.classList.remove('visible');
+  blur.classList.remove('active');
+  document.querySelectorAll('.sni').forEach(n => n.classList.remove('panel-open'));
+  // reset subs
+  panelEl.querySelectorAll('.mp-sub-wrap.open').forEach(w => w.classList.remove('open'));
+  panelEl.querySelectorAll('.mp-item.sub-open').forEach(i => i.classList.remove('sub-open'));
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+</script>
+</body>
+</html>

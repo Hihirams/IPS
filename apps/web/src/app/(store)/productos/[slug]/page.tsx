@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { AddToCartControls } from '@/components/add-to-cart-controls';
 import { StarRating } from '@/components/star-rating';
 import { ProductCard } from '@/components/product-card';
-import { api } from '@/lib/api';
+import { api, API_URL } from '@/lib/api';
 import { formatPriceMxn } from '@/lib/currency';
 import { getDisplayCategoryForProduct } from '@/lib/categories';
 import type { PublicProduct, PublicProductDetail } from '@ecommerce/types';
@@ -23,26 +23,38 @@ interface ProductDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
-// Pre-render de los 20 productos más populares
-export async function generateStaticParams() {
-  try {
-    const res = await api('/api/products?limit=20&sortBy=createdAt&sortOrder=desc');
-    const json = await res.json();
-    const products = json.data?.data ?? [];
-    return products.map((p: { slug: string }) => ({ slug: p.slug }));
-  } catch {
-    return [];
-  }
-}
+/**
+ * Render dinámico por petición.
+ *
+ * Antes la página dependía de generateStaticParams + ISR. En el build de
+ * producción (Railway) API_URL llega vacío al Dockerfile, por lo que el fetch
+ * de build caía a http://localhost:4000 y solo se pre-generaban (o fallaban)
+ * unos pocos productos; el resto devolvía 404 en blanco. Renderizando en
+ * cada request, todo producto existente se resuelve contra la API real.
+ */
+export const dynamic = 'force-dynamic';
 
 async function getProduct(slug: string): Promise<PublicProductDetail | null> {
-  try {
-    const res = await api(`/api/products/${slug}`);
-    const json = await res.json();
-    return json.data ?? null;
-  } catch {
+  const path = `/api/products/${encodeURIComponent(slug)}`;
+  const res = await api(path, { next: { revalidate: 0 } });
+
+  // 404 real → producto inexistente (notFound legítimo).
+  if (res.status === 404) {
     return null;
   }
+
+  // Cualquier otro fallo (5xx, red, API_URL mal configurado) NO debe
+  // enmascararse como "producto no encontrado". Lo registramos y lo
+  // propagamos para que se vea como error real y aparezca en los logs.
+  if (!res.ok) {
+    console.error(
+      `[product-detail] fallo al cargar "${slug}": ${res.status} ${res.statusText} — base=${API_URL}`
+    );
+    throw new Error(`Backend respondió ${res.status} para ${path}`);
+  }
+
+  const json = await res.json();
+  return json.data ?? null;
 }
 
 async function getRelatedProducts(categorySlug: string, excludeSlug: string): Promise<PublicProduct[]> {
@@ -60,7 +72,9 @@ async function getRelatedProducts(categorySlug: string, excludeSlug: string): Pr
 
 export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  // En metadata no queremos que un fallo de backend rompa el render;
+  // si falla, devolvemos un título genérico.
+  const product = await getProduct(slug).catch(() => null);
 
   if (!product) {
     return {

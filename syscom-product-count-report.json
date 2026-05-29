@@ -1,0 +1,158 @@
+{
+  "timestamp": "2026-05-24T15:43:26.283Z",
+  "categoriasNivel1": 12,
+  "sumSinAgrupar": 53525,
+  "sumConAgrupar": 53516,
+  "detalleSinAgrupar": [
+    {
+      "id": "26",
+      "nombre": "Redes e IT",
+      "cantidad": 8998,
+      "paginas": 150
+    },
+    {
+      "id": "22",
+      "nombre": "Videovigilancia",
+      "cantidad": 8135,
+      "paginas": 136
+    },
+    {
+      "id": "65811",
+      "nombre": "Cableado Estructurado",
+      "cantidad": 7233,
+      "paginas": 121
+    },
+    {
+      "id": "30",
+      "nombre": "Energía / Herramientas",
+      "cantidad": 6941,
+      "paginas": 116
+    },
+    {
+      "id": "25",
+      "nombre": "Radiocomunicación",
+      "cantidad": 6021,
+      "paginas": 101
+    },
+    {
+      "id": "37",
+      "nombre": "Control  de Acceso ",
+      "cantidad": 5789,
+      "paginas": 97
+    },
+    {
+      "id": "32",
+      "nombre": "Automatización   e Intrusión",
+      "cantidad": 3630,
+      "paginas": 61
+    },
+    {
+      "id": "38",
+      "nombre": "Detección de Fuego",
+      "cantidad": 1898,
+      "paginas": 32
+    },
+    {
+      "id": "66523",
+      "nombre": "Audio y Video Profesional",
+      "cantidad": 1826,
+      "paginas": 31
+    },
+    {
+      "id": "27",
+      "nombre": "IoT / GPS / Telemática y Señalización Audiovisual",
+      "cantidad": 1800,
+      "paginas": 30
+    },
+    {
+      "id": "66630",
+      "nombre": "Industria / BMS/ Robots",
+      "cantidad": 1135,
+      "paginas": 19
+    },
+    {
+      "id": "65747",
+      "nombre": "Marketing",
+      "cantidad": 119,
+      "paginas": 2
+    }
+  ],
+  "detalleConAgrupar": [
+    {
+      "id": "26",
+      "nombre": "Redes e IT",
+      "cantidad": 8998,
+      "paginas": 150
+    },
+    {
+      "id": "22",
+      "nombre": "Videovigilancia",
+      "cantidad": 8135,
+      "paginas": 136
+    },
+    {
+      "id": "65811",
+      "nombre": "Cableado Estructurado",
+      "cantidad": 7233,
+      "paginas": 121
+    },
+    {
+      "id": "30",
+      "nombre": "Energía / Herramientas",
+      "cantidad": 6941,
+      "paginas": 116
+    },
+    {
+      "id": "25",
+      "nombre": "Radiocomunicación",
+      "cantidad": 6021,
+      "paginas": 101
+    },
+    {
+      "id": "37",
+      "nombre": "Control  de Acceso ",
+      "cantidad": 5789,
+      "paginas": 97
+    },
+    {
+      "id": "32",
+      "nombre": "Automatización   e Intrusión",
+      "cantidad": 3630,
+      "paginas": 61
+    },
+    {
+      "id": "38",
+      "nombre": "Detección de Fuego",
+      "cantidad": 1898,
+      "paginas": 32
+    },
+    {
+      "id": "66523",
+      "nombre": "Audio y Video Profesional",
+      "cantidad": 1826,
+      "paginas": 31
+    },
+    {
+      "id": "27",
+      "nombre": "IoT / GPS / Telemática y Señalización Audiovisual",
+      "cantidad": 1800,
+      "paginas": 30
+    },
+    {
+      "id": "66630",
+      "nombre": "Industria / BMS/ Robots",
+      "cantidad": 1135,
+      "paginas": 19
+    },
+    {
+      "id": "65747",
+      "nombre": "Marketing",
+      "cantidad": 110,
+      "paginas": 2
+    }
+  ],
+  "busquedaGenerica": {
+    "a": "cantidad=357, paginas=6",
+    "e": "cantidad=341, paginas=6"
+  }
+}
