@@ -74,6 +74,7 @@ function createMockRedis(): MockRedis {
 export async function buildTestApp(): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false, // Silenciar logs en tests
+    maxParamLength: 500, // Igual que producción: soportar slugs largos de SYSCOM
   });
 
   // Mock config

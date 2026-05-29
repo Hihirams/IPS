@@ -109,6 +109,11 @@ async function bootstrap() {
   const app = Fastify({
     logger,
     trustProxy: true,
+    // Los slugs de productos sincronizados desde SYSCOM se generan a partir
+    // de títulos largos y superan fácilmente los 100 caracteres (el default
+    // de find-my-way). Sin esto, /api/products/:slug devuelve 404 para slugs
+    // largos aunque el producto exista. Lo subimos para soportarlos.
+    maxParamLength: 500,
   });
 
   // Exponer config para que plugins la usen
