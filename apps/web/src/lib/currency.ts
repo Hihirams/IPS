@@ -1,60 +1,28 @@
 /**
- * Conversión USD → MXN con tasa live + 35% de margen.
- * Fuente: exchangerate-api.com (plan gratuito, se cachea 1h en memoria).
+ * Utilidades de formato de moneda MXN.
+ *
+ * Los precios en la DB ya están en MXN con 35% de margen aplicado
+ * durante el sync de productos desde Syscom. Estas funciones solo
+ * formatean el número para mostrar.
  */
 
-const MARGIN = 1.35;
-const CACHE_TTL = 60 * 60 * 1000; // 1 hora
-
-let cachedRate: number | null = null;
-let cacheTs = 0;
-
-export async function getUsdToMxnRate(): Promise<number> {
-  const now = Date.now();
-  if (cachedRate !== null && now - cacheTs < CACHE_TTL) return cachedRate;
-
-  try {
-    const res = await fetch(
-      'https://api.exchangerate-api.com/v4/latest/USD',
-      { next: { revalidate: 3600 } }
-    );
-    const json = await res.json() as { rates: Record<string, number> };
-    const rate = json.rates?.MXN ?? 17.5;
-    cachedRate = rate;
-    cacheTs = now;
-    return rate;
-  } catch {
-    // Fallback si falla la API
-    return cachedRate ?? 17.5;
-  }
-}
-
-/**
- * Convierte precio USD → MXN con 35% de margen.
- * Usar en Server Components.
- */
-export async function usdToMxn(usd: number): Promise<number> {
-  const rate = await getUsdToMxnRate();
-  return usd * rate * MARGIN;
-}
-
-/**
- * Formateador MXN.
- */
 const mxnFmt = new Intl.NumberFormat('es-MX', {
   style: 'currency',
   currency: 'MXN',
   minimumFractionDigits: 2,
 });
 
+/**
+ * Formatea un monto en MXN.
+ */
 export function formatMxn(amount: number): string {
   return mxnFmt.format(amount);
 }
 
 /**
- * Convierte y formatea en un paso (para Server Components).
+ * Formatea precio para Server Components.
+ * El precio ya viene en MXN desde la DB (con margen aplicado en sync).
  */
-export async function formatPriceMxn(usd: number): Promise<string> {
-  const mxn = await usdToMxn(usd);
-  return formatMxn(mxn);
+export async function formatPriceMxn(mxnPrice: number): Promise<string> {
+  return formatMxn(mxnPrice);
 }

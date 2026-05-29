@@ -5,6 +5,12 @@ import { generateSlug, generateCategorySlug, generateBrandSlug } from '../module
 import type { Prisma } from '@prisma/client';
 import type { FastifyInstance } from 'fastify';
 
+/** Margen de ganancia sobre el precio de costo del proveedor */
+const MARGIN = 1.35;
+const EXCHANGE_RATE_CACHE_KEY = 'sync:usd_mxn_rate';
+const EXCHANGE_RATE_CACHE_TTL = 3600; // 1 hora en segundos
+const FALLBACK_RATE = 17.5;
+
 interface SyncStats {
   processed: number;
   created: number;
@@ -59,10 +65,43 @@ function buildProductImages(product: SyscomProduct, detail?: SyscomProductDetail
 export class SyncService {
   private syscom: SyscomService;
   private log: FastifyInstance['log'];
+  private redis: FastifyInstance['redis'];
 
   constructor(app: FastifyInstance) {
     this.syscom = new SyscomService(app);
     this.log = app.log;
+    this.redis = app.redis;
+  }
+
+  /**
+   * Obtiene tipo de cambio USD→MXN, cacheado en Redis.
+   */
+  private async getUsdToMxnRate(): Promise<number> {
+    try {
+      const cached = await this.redis.get(EXCHANGE_RATE_CACHE_KEY);
+      if (cached) return Number(cached);
+    } catch { /* ignore redis errors */ }
+
+    try {
+      const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      const json = await res.json() as { rates: Record<string, number> };
+      const rate = json.rates?.MXN ?? FALLBACK_RATE;
+      try {
+        await this.redis.setex(EXCHANGE_RATE_CACHE_KEY, EXCHANGE_RATE_CACHE_TTL, String(rate));
+      } catch { /* ignore */ }
+      this.log.info({ rate }, 'Tipo de cambio USD→MXN obtenido');
+      return rate;
+    } catch {
+      this.log.warn('No se pudo obtener tipo de cambio, usando fallback');
+      return FALLBACK_RATE;
+    }
+  }
+
+  /**
+   * Convierte precio USD → MXN con 35% de margen.
+   */
+  private convertPrice(usdPrice: number, rate: number): number {
+    return Math.round(usdPrice * rate * MARGIN * 100) / 100;
   }
 
   async syncCategories(): Promise<SyncStats> {
@@ -537,11 +576,15 @@ export class SyncService {
       brandId = lookups.brandsByName.get(product.marca.toLowerCase());
     }
 
-    // Calculate prices
+    // Calculate prices: convert USD → MXN with 35% margin
+    const rate = await this.getUsdToMxnRate();
     const precios = product.precios || {};
-    const price = Number(precios.precio_lista ?? precios.precio_especial ?? 0);
-    const comparePrice = Number(precios.precio_especial ?? 0) > 0 ? Number(precios.precio_especial) : null;
-    const cost = Number(precios.precio_descuento ?? precios.precio_lista ?? 0);
+    const rawPrice = Number(precios.precio_lista ?? precios.precio_especial ?? 0);
+    const rawComparePrice = Number(precios.precio_especial ?? 0);
+    const rawCost = Number(precios.precio_descuento ?? precios.precio_lista ?? 0);
+    const price = this.convertPrice(rawPrice, rate);
+    const comparePrice = rawComparePrice > 0 ? this.convertPrice(rawComparePrice, rate) : null;
+    const cost = this.convertPrice(rawCost, rate);
     const stock = product.total_existencia ?? 0;
 
     const images = buildProductImages(product);

@@ -122,9 +122,10 @@ export default function CartPage() {
           )}
 
           {cart.stockAlerts.length > 0 && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-              <p className="text-sm font-medium text-red-800">⚠ Productos sin stock</p>
-              <ul className="mt-1 list-inside list-disc text-sm text-red-700">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm font-medium text-amber-800">📦 Productos con entrega extendida</p>
+              <p className="mt-1 text-xs text-amber-600">Estos productos pueden tardar ~1 semana en llegar.</p>
+              <ul className="mt-1 list-inside list-disc text-sm text-amber-700">
                 {cart.stockAlerts.map((alert) => (
                   <li key={alert.productId}>
                     {alert.productName}: solicitaste {alert.requested}, disponibles {alert.available}

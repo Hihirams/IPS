@@ -317,9 +317,10 @@ export default function CheckoutPage() {
           )}
 
           {summary.stockAlerts.length > 0 && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-              <p className="text-sm font-medium text-red-800">⚠ Productos sin stock suficiente</p>
-              <ul className="mt-1 text-sm text-red-700">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm font-medium text-amber-800">📦 Algunos productos sin stock inmediato</p>
+              <p className="mt-1 text-xs text-amber-700">Estos productos pueden tardar ~1 semana en llegar.</p>
+              <ul className="mt-1 text-sm text-amber-700">
                 {summary.stockAlerts.map((alert) => (
                   <li key={alert.productId}>
                     {alert.productName}: disponibles {alert.available}, solicitados {alert.requested}
@@ -338,7 +339,7 @@ export default function CheckoutPage() {
             </button>
             <button
               onClick={handleCreatePaymentIntent}
-              disabled={isLoading || summary.stockAlerts.length > 0}
+              disabled={isLoading}
               className="flex-1 rounded-lg bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
             >
               {isLoading ? 'Procesando...' : 'Confirmar y Pagar'}

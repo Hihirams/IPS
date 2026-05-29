@@ -234,7 +234,7 @@ export async function productRoutes(app: FastifyInstance) {
 
     // Incrementar vistas de forma async (no bloquear respuesta)
     prisma.product.update({
-      where: { id: product.id },
+      where: { id: resolvedProduct.id },
       data: {}, // En una implementacion real, tendriamos un campo views
     }).catch(() => { /* ignorar errores de vistas */ });
 

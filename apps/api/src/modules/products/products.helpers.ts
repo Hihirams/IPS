@@ -229,5 +229,5 @@ export function toPublicProduct(
     comparePrice: rest.comparePrice != null ? Number(rest.comparePrice) : null,
     stock: Number(stock),
     stockStatus: getStockStatus(Number(stock), Number(lowStockThreshold)),
-  } as PublicProduct;
+  } as unknown as PublicProduct;
 }

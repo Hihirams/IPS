@@ -833,4 +833,4 @@ export interface SyncStatusResponse {
     brands: { status: string; completedAt: Date | null } | null;
     products: { status: string; completedAt: Date | null } | null;
   };
-}
+}

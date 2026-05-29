@@ -11,6 +11,8 @@ const SHIPPING_FLAT = 99;
 const SHIPPING_FREE_THRESHOLD = 1000;
 const TAX_RATE = 0.16; // 16% IVA México
 const PRICE_CHANGE_THRESHOLD = 0.05; // 5% de diferencia para alertar
+const MARGIN = 1.35;
+const FALLBACK_RATE = 17.5;
 
 export interface CheckoutItem {
   productId: string;
@@ -159,6 +161,19 @@ export async function validateCartWithSyscom(
     return localSummary;
   }
 
+  // Get exchange rate for converting Syscom prices (USD) to MXN
+  let rate = FALLBACK_RATE;
+  try {
+    const cached = await app.redis.get('sync:usd_mxn_rate');
+    if (cached) {
+      rate = Number(cached);
+    } else {
+      const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      const json = await res.json() as { rates: Record<string, number> };
+      rate = json.rates?.MXN ?? FALLBACK_RATE;
+    }
+  } catch { /* use fallback */ }
+
   const syscom = new SyscomService(app);
   const priceAlerts = [...localSummary.priceAlerts];
   const stockAlerts = [...localSummary.stockAlerts];
@@ -169,20 +184,23 @@ export async function validateCartWithSyscom(
 
       const localItem = localSummary.items.find((i) => i.productId === item.productId);
       if (localItem) {
-        const syscomPrice = syscomData.precioLista > 0 ? syscomData.precioLista : syscomData.precioEspecial;
+        // Convert Syscom USD price to MXN with margin for fair comparison
+        const rawSyscomPrice = syscomData.precioLista > 0 ? syscomData.precioLista : syscomData.precioEspecial;
+        const syscomPriceMxn = Math.round(rawSyscomPrice * rate * MARGIN * 100) / 100;
 
-        if (syscomPrice > 0 && Math.abs(localItem.unitPrice - syscomPrice) / localItem.unitPrice > PRICE_CHANGE_THRESHOLD) {
+        if (syscomPriceMxn > 0 && Math.abs(localItem.unitPrice - syscomPriceMxn) / localItem.unitPrice > PRICE_CHANGE_THRESHOLD) {
           const existingAlert = priceAlerts.find((a) => a.productId === item.productId);
           if (!existingAlert) {
             priceAlerts.push({
               productId: item.productId,
               productName: localItem.name,
               oldPrice: localItem.unitPrice,
-              newPrice: syscomPrice,
+              newPrice: syscomPriceMxn,
             });
           }
         }
 
+        // Stock alerts are informational (don't block checkout)
         if (syscomData.stock < item.quantity) {
           const existingAlert = stockAlerts.find((a) => a.productId === item.productId);
           if (!existingAlert) {

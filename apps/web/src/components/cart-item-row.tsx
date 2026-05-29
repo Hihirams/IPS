@@ -93,7 +93,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
             <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
             <button
               onClick={() => handleQuantityChange(1)}
-              disabled={isLoading || item.quantity >= item.product.stock}
+              disabled={isLoading || item.quantity >= 99}
               className="px-3 py-1 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
             >
               +

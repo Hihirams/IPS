@@ -260,9 +260,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               </span>
             )}
             {product.stockStatus === 'out_of_stock' && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-600 ring-1 ring-slate-200">
-                <span className="h-2 w-2 rounded-full bg-slate-400" />
-                Back order — entrega ~4 días hábiles
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 ring-1 ring-amber-200">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                Disponible por pedido — entrega ~1 semana
               </span>
             )}
           </div>

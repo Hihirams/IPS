@@ -11,7 +11,7 @@ function StockBadge({ stockStatus, stock }: { stockStatus: StockStatus; stock: n
   if (stockStatus === 'low_stock') {
     return <span className="mt-1 text-xs font-medium text-amber-600">Pocas unidades: {stock} uds.</span>;
   }
-  return <span className="mt-1 text-xs font-medium text-slate-500">Back order</span>;
+  return <span className="mt-1 text-xs font-medium text-amber-600">Disponible por pedido (~1 semana)</span>;
 }
 
 interface ProductCardProps {
