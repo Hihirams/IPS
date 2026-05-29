@@ -170,7 +170,7 @@ export async function productRoutes(app: FastifyInstance) {
     }
 
     const product = await prisma.product.findUnique({
-      where: { slug, isActive: true },
+      where: { slug },  // Sin filtro isActive — back orders e inactivos igual se muestran
       include: {
         category: { select: { id: true, name: true, slug: true } },
         brand: { select: { id: true, name: true, slug: true, logo: true } },
@@ -190,7 +190,26 @@ export async function productRoutes(app: FastifyInstance) {
       },
     });
 
-    if (!product) {
+    // Fallback: buscar por sku si el slug no existe (puede ser que el slug llegue
+    // URL-encoded o con variación al generarse)
+    const resolvedProduct = product ?? await prisma.product.findUnique({
+      where: { sku: slug },
+      include: {
+        category: { select: { id: true, name: true, slug: true } },
+        brand: { select: { id: true, name: true, slug: true, logo: true } },
+        reviews: {
+          where: { isApproved: true },
+          take: 10,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true, rating: true, title: true, body: true, createdAt: true,
+            user: { select: { name: true } },
+          },
+        },
+      },
+    });
+
+    if (!resolvedProduct) {
       return reply.status(404).send({
         success: false,
         error: { code: 'PRODUCT_NOT_FOUND', message: 'Producto no encontrado.' },
@@ -199,13 +218,13 @@ export async function productRoutes(app: FastifyInstance) {
 
     // Calcular review summary
     const reviewAgg = await prisma.review.aggregate({
-      where: { productId: product.id, isApproved: true },
+      where: { productId: resolvedProduct.id, isApproved: true },
       _avg: { rating: true },
       _count: { id: true },
     });
 
-    const publicProduct = toPublicProduct(product) as PublicProductDetail;
-    publicProduct.reviews = product.reviews;
+    const publicProduct = toPublicProduct(resolvedProduct) as PublicProductDetail;
+    publicProduct.reviews = resolvedProduct.reviews;
     publicProduct.reviewSummary = {
       averageRating: Number(reviewAgg._avg.rating?.toFixed(1)) ?? 0,
       totalReviews: reviewAgg._count.id,
@@ -312,22 +331,61 @@ export async function productRoutes(app: FastifyInstance) {
     return reply.status(200).send({ success: true, data: category });
   });
 
-  // GET /api/brands — Lista de marcas activas
-  app.get('/api/brands', async (_request, reply) => {
-    const cached = await cache.getBrands<unknown[]>();
-    if (cached) {
-      return reply.status(200).send({ success: true, data: cached });
+  // GET /api/brands — Lista de marcas activas.
+  // Query params opcionales: categories (csv de slugs), search, brand — para filtrar
+  // solo marcas con productos en el contexto actual.
+  app.get('/api/brands', async (request, reply) => {
+    const { categories, search } = request.query as {
+      categories?: string;
+      search?: string;
+    };
+
+    // Si no hay filtros, usar cache global
+    const hasFilter = categories || search;
+    if (!hasFilter) {
+      const cached = await cache.getBrands<unknown[]>();
+      if (cached) {
+        return reply.status(200).send({ success: true, data: cached });
+      }
+    }
+
+    // Construir where de productos para filtrar marcas relevantes
+    const productWhere: Record<string, unknown> = { isActive: true };
+
+    if (categories) {
+      const slugs = categories.split(',').map((s) => s.trim()).filter(Boolean);
+      if (slugs.length > 0) {
+        const matchedCats = await prisma.category.findMany({
+          where: { slug: { in: slugs }, isActive: true },
+          select: { id: true },
+        });
+        if (matchedCats.length > 0) {
+          productWhere.categoryId = { in: matchedCats.map((c) => c.id) };
+        }
+      }
+    }
+
+    if (search) {
+      productWhere.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
     const brands = await prisma.brand.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+        products: { some: productWhere },
+      },
       orderBy: { name: 'asc' },
       include: {
         _count: { select: { products: { where: { isActive: true } } } },
       },
     });
 
-    await cache.setBrands(brands);
+    if (!hasFilter) {
+      await cache.setBrands(brands);
+    }
 
     return reply.status(200).send({ success: true, data: brands });
   });

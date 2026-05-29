@@ -20,7 +20,7 @@ export async function generateSlug(name: string, existingId?: string): Promise<s
   const base = name
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remover acentos
+    .replace(/[̀-ͯ]/g, '') // Remover acentos
     .replace(/[^a-z0-9]+/g, '-') // Caracteres no alfanumericos → guion
     .replace(/^-+|-+$/g, '') // Remover guiones al inicio/fin
     .replace(/-+/g, '-'); // Multi-guion → simple
@@ -48,7 +48,7 @@ export async function generateCategorySlug(name: string): Promise<string> {
   const base = name
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .replace(/-+/g, '-');
@@ -73,7 +73,7 @@ export async function generateBrandSlug(name: string): Promise<string> {
   const base = name
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .replace(/-+/g, '-');
@@ -227,6 +227,7 @@ export function toPublicProduct(
     ...(rest as Omit<typeof rest, 'cost'>),
     price: Number(rest.price),
     comparePrice: rest.comparePrice != null ? Number(rest.comparePrice) : null,
+    stock: Number(stock),
     stockStatus: getStockStatus(Number(stock), Number(lowStockThreshold)),
   } as PublicProduct;
 }

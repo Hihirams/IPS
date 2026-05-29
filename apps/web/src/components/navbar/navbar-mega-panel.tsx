@@ -1,126 +1,52 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   IconCircle,
   IconChevronRight,
-  IconPhone,
-  IconHeadphones,
   IconDeviceLaptop,
   IconDeviceTv,
   IconCamera,
-  IconShirt,
-  IconDeviceMobile,
-  IconHome,
-  IconSofa,
-  IconLamp,
-  IconToolsKitchen2,
-  IconBed,
-  IconRun,
-  IconSwimming,
-  IconBike,
-  IconYoga,
-  IconBarbell,
-  IconLeaf,
-  IconDroplet,
-  IconHeartRateMonitor,
-  IconBottle,
-  IconSchool,
-  IconBook,
-  IconPencil,
-  IconPaint,
   IconLayoutDashboard,
   IconTrendingUp,
   IconStar,
   IconFlame,
   IconClock,
-  IconCalendarWeek,
-  IconAward,
   IconEye,
-  IconPercentage,
-  IconClockHour4,
-  IconGift,
-  IconCoin,
-  IconCreditCard,
   IconTruck,
   IconCheck,
   IconRefresh,
   IconFileInvoice,
-  IconHeart,
   IconBell,
-  IconShare,
   IconUser,
   IconMapPin,
   IconLock,
   IconLogout,
-  IconReceiptRefund,
-  IconShieldCheck,
-  IconMessageDots,
-  IconMail,
-  IconBrandWhatsapp,
-  IconBabyCarriage,
-  IconShoe,
+  IconCreditCard,
 } from '@tabler/icons-react';
 import { PANELS, type PanelItem } from './navbar-data';
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string }>> = {
-  'ti-phone': IconPhone,
-  'ti-headphones': IconHeadphones,
   'ti-laptop': IconDeviceLaptop,
   'ti-device-tv': IconDeviceTv,
   'ti-camera': IconCamera,
-  'ti-shirt': IconShirt,
-  'ti-dress': IconShirt,
-  'ti-baby-carriage': IconBabyCarriage,
-  'ti-shoe': IconShoe,
-  'ti-device-mobile': IconDeviceMobile,
-  'ti-home': IconHome,
-  'ti-sofa': IconSofa,
-  'ti-lamp': IconLamp,
-  'ti-tools-kitchen-2': IconToolsKitchen2,
-  'ti-bed': IconBed,
-  'ti-run': IconRun,
-  'ti-swimming': IconSwimming,
-  'ti-bike': IconBike,
-  'ti-yoga': IconYoga,
-  'ti-barbell': IconBarbell,
-  'ti-leaf': IconLeaf,
-  'ti-droplet': IconDroplet,
-  'ti-heart-rate-monitor': IconHeartRateMonitor,
-  'ti-bottle': IconBottle,
-  'ti-school': IconSchool,
-  'ti-book': IconBook,
-  'ti-pencil': IconPencil,
-  'ti-paint': IconPaint,
   'ti-layout-dashboard': IconLayoutDashboard,
   'ti-trending-up': IconTrendingUp,
   'ti-star': IconStar,
   'ti-flame': IconFlame,
   'ti-clock': IconClock,
-  'ti-calendar-week': IconCalendarWeek,
-  'ti-award': IconAward,
   'ti-eye': IconEye,
-  'ti-percentage': IconPercentage,
-  'ti-clock-hour-4': IconClockHour4,
-  'ti-gift': IconGift,
-  'ti-coin': IconCoin,
-  'ti-credit-card': IconCreditCard,
   'ti-truck': IconTruck,
   'ti-check': IconCheck,
   'ti-refresh': IconRefresh,
   'ti-file-invoice': IconFileInvoice,
-  'ti-heart': IconHeart,
   'ti-bell': IconBell,
-  'ti-share': IconShare,
   'ti-user': IconUser,
   'ti-map-pin': IconMapPin,
   'ti-lock': IconLock,
   'ti-logout': IconLogout,
-  'ti-receipt-refund': IconReceiptRefund,
-  'ti-shield-check': IconShieldCheck,
-  'ti-message-dots': IconMessageDots,
-  'ti-mail': IconMail,
-  'ti-brand-whatsapp': IconBrandWhatsapp,
+  'ti-credit-card': IconCreditCard,
 };
 
 function DynamicIcon({ name, size = 17 }: { name: string; size?: number }) {
@@ -177,39 +103,48 @@ export function NavbarMegaPanel({ panelKey, sideExpanded, top }: MegaPanelProps)
             const subKey = `${colIdx}-${itemIdx}`;
             const isSubOpen = openSubs.has(subKey);
 
+            const itemCls = "group flex min-h-[38px] w-full items-center gap-2.5 px-4 py-1.5 text-[13.5px] text-black/54 transition-colors hover:bg-black/4 hover:text-black/86";
+            const itemContent = (
+              <>
+                <DynamicIcon name={item.icon} />
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.sub ? (
+                  <IconChevronRight
+                    size={11}
+                    className={`shrink-0 text-black/20 transition-transform ${
+                      isSubOpen ? 'rotate-90 text-black/38' : ''
+                    }`}
+                  />
+                ) : item.tag ? (
+                  <span
+                    className={`shrink-0 rounded-lg px-2 py-0.5 text-[10px] font-medium ${
+                      item.tagClass === 'hot'
+                        ? 'bg-red-500/10 text-red-700/70'
+                        : item.tagClass === 'new'
+                        ? 'bg-green-500/10 text-green-700/70'
+                        : 'bg-black/[0.06] text-black/36'
+                    }`}
+                  >
+                    {item.tag}
+                  </span>
+                ) : null}
+              </>
+            );
+
             return (
               <div key={itemIdx}>
-                <button
-                  onClick={() => {
-                    if (item.sub) {
-                      toggleSub(colIdx, itemIdx);
-                    }
-                  }}
-                  className="group flex min-h-[38px] w-full items-center gap-2.5 px-4 py-1.5 text-[13.5px] text-black/54 transition-colors hover:bg-black/4 hover:text-black/86"
-                >
-                  <DynamicIcon name={item.icon} />
-                  <span className="flex-1 text-left">{item.label}</span>
-                  {item.sub ? (
-                    <IconChevronRight
-                      size={11}
-                      className={`shrink-0 text-black/20 transition-transform ${
-                        isSubOpen ? 'rotate-90 text-black/38' : ''
-                      }`}
-                    />
-                  ) : item.tag ? (
-                    <span
-                      className={`shrink-0 rounded-lg px-2 py-0.5 text-[10px] font-medium ${
-                        item.tagClass === 'hot'
-                          ? 'bg-red-500/10 text-red-700/70'
-                          : item.tagClass === 'new'
-                          ? 'bg-green-500/10 text-green-700/70'
-                          : 'bg-black/[0.06] text-black/36'
-                      }`}
-                    >
-                      {item.tag}
-                    </span>
-                  ) : null}
-                </button>
+                {item.href && !item.sub ? (
+                  <Link href={item.href} className={itemCls}>
+                    {itemContent}
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => { if (item.sub) toggleSub(colIdx, itemIdx); }}
+                    className={itemCls}
+                  >
+                    {itemContent}
+                  </button>
+                )}
 
                 {item.sub && (
                   <div
@@ -218,13 +153,24 @@ export function NavbarMegaPanel({ panelKey, sideExpanded, top }: MegaPanelProps)
                     }`}
                   >
                     {item.sub.map((sub, subIdx) => (
-                      <div
-                        key={subIdx}
-                        className="flex h-[34px] cursor-pointer items-center gap-2 px-3.5 text-[12.5px] text-black/42 transition-colors hover:bg-black/4 hover:text-black/78"
-                      >
-                        <DynamicIcon name={sub.icon} size={14} />
-                        {sub.label}
-                      </div>
+                      sub.href ? (
+                        <Link
+                          key={subIdx}
+                          href={sub.href}
+                          className="flex h-[34px] items-center gap-2 px-3.5 text-[12.5px] text-black/42 transition-colors hover:bg-black/4 hover:text-black/78"
+                        >
+                          <DynamicIcon name={sub.icon} size={14} />
+                          {sub.label}
+                        </Link>
+                      ) : (
+                        <div
+                          key={subIdx}
+                          className="flex h-[34px] cursor-pointer items-center gap-2 px-3.5 text-[12.5px] text-black/42 transition-colors hover:bg-black/4 hover:text-black/78"
+                        >
+                          <DynamicIcon name={sub.icon} size={14} />
+                          {sub.label}
+                        </div>
+                      )
                     ))}
                   </div>
                 )}

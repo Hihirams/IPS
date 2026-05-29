@@ -47,17 +47,28 @@ export const DISPLAY_CATEGORIES: DisplayCategory[] = [
     ],
   },
   {
-    name: 'Alarmas y Sensores',
-    slug: 'alarmas-sensores',
+    name: 'Alarmas / Intrusión',
+    slug: 'alarmas-intrusion',
     icon: '🚨',
-    description: 'Detectores, paneles de alarma, sirenas, sensores',
+    description: 'Paneles de alarma, detectores de movimiento, sirenas, sensores de intrusión',
     keywords: [
-      'alarma', 'detector', 'sensor', 'movimiento', 'humo', 'temperatura',
-      'gas', 'flama', 'fuego', 'incendio', 'humedad', 'presion', 'flujo',
-      'magnetico', 'contacto', 'sismico', 'vibracion', 'rotura', 'vidrio',
-      'panel de alarma', 'sirena', 'estrob', 'bocina', 'notificacion', 'voceo',
-      'honeywell', 'dsc', 'ajax', 'paradox', 'pirl', 'pir', 'fotoelectrico',
-      'microondas', 'perimetral', 'radar', 'barra', 'inalambrico',
+      'alarma', 'detector', 'sensor', 'movimiento', 'magnetico', 'contacto',
+      'sismico', 'vibracion', 'rotura', 'vidrio', 'panel de alarma', 'sirena',
+      'estrob', 'bocina', 'notificacion', 'voceo', 'honeywell', 'dsc', 'ajax',
+      'paradox', 'pirl', 'pir', 'microondas', 'perimetral', 'radar', 'barra',
+      'inalambrico', 'intrusion',
+    ],
+  },
+  {
+    name: 'Sensores de Incendio',
+    slug: 'sensores-incendio',
+    icon: '🔥',
+    description: 'Detectores de humo, calor, gas, flama; paneles contra incendio',
+    keywords: [
+      'humo', 'temperatura', 'gas', 'flama', 'fuego', 'incendio', 'humedad',
+      'presion', 'flujo', 'fotoelectrico', 'termico', 'detector de humo',
+      'detector de calor', 'panel contra incendio', 'suppressant', 'supresion',
+      'contra incendio', 'co2', 'agente limpio',
     ],
   },
   {
@@ -109,6 +120,19 @@ export const DISPLAY_CATEGORIES: DisplayCategory[] = [
       'gateway', 'ata', 'sip', 'megafonia', 'voceo', 'pa',
       'portatil', 'uhf', 'vhf', 'kenwood', 'icom', 'motorola',
       'diadema', 'audifono', 'antena', 'mastil', 'torre',
+    ],
+  },
+  {
+    name: 'Audio y Video Profesional',
+    slug: 'audio-video-profesional',
+    icon: '📺',
+    description: 'Videowall, pantallas profesionales, señalización digital, distribuidores AV',
+    keywords: [
+      'videowall', 'video wall', 'pantalla profesional', 'led wall', 'display',
+      'señalizacion digital', 'digital signage', 'splitter hdmi', 'matrix',
+      'distribuidor av', 'extensor hdmi', 'scaler', 'procesador de video',
+      'presentacion', 'sala de conferencias', 'auditorio', 'proyector',
+      'pantalla de proyeccion', 'videoproyector', 'hdmi', 'displayport',
     ],
   },
   {
@@ -189,6 +213,16 @@ export const DISPLAY_CATEGORIES: DisplayCategory[] = [
     keywords: [
       'poliza', 'garantia', 'licencia', 'software', 'suscripcion', 'servicio',
       'programacion', 'mantenimiento', 'instalacion',
+    ],
+  },
+  {
+    name: 'Back Orders',
+    slug: 'back-orders',
+    icon: '⏳',
+    description: 'Productos bajo pedido — entrega en días hábiles',
+    keywords: [
+      'back order', 'backorder', 'pedido especial', 'por encargo', 'bajo pedido',
+      'disponibilidad especial', 'preventa', 'entrega programada',
     ],
   },
 ];

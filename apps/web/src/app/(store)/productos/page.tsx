@@ -69,9 +69,15 @@ async function getCategories() {
   }
 }
 
-async function getBrands() {
+async function getBrands(syscomCategorySlugs?: string[], search?: string) {
   try {
-    const res = await api('/api/brands');
+    const params = new URLSearchParams();
+    if (syscomCategorySlugs && syscomCategorySlugs.length > 0) {
+      params.set('categories', syscomCategorySlugs.join(','));
+    }
+    if (search) params.set('search', search);
+    const qs = params.toString();
+    const res = await api(qs ? `/api/brands?${qs}` : '/api/brands');
     const json = await res.json();
     return json.data ?? [];
   } catch {
@@ -98,14 +104,14 @@ function resolveDisplayCategoryToSyscomSlugs(
 
 export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   const params = await searchParams;
-  const [categories, brands] = await Promise.all([
-    getCategories(),
-    getBrands(),
-  ]);
+  const categories = await getCategories();
 
   const syscomSlugs = params.categoria
     ? resolveDisplayCategoryToSyscomSlugs(params.categoria, categories)
     : undefined;
+
+  // Marcas filtradas al contexto actual (categoría + búsqueda)
+  const brands = await getBrands(syscomSlugs, params.busqueda);
 
   const { products, meta } = await getProducts(params, syscomSlugs);
 

@@ -158,6 +158,7 @@ export type StockStatus = 'available' | 'low_stock' | 'out_of_stock';
 
 export interface PublicProduct extends Omit<Product, 'lowStockThreshold' | 'stock'> {
   stockStatus: StockStatus;
+  stock: number;
   category?: Pick<Category, 'id' | 'name' | 'slug'>;
   brand?: Pick<Brand, 'id' | 'name' | 'slug' | 'logo'> | null;
   reviewSummary?: {
@@ -832,4 +833,4 @@ export interface SyncStatusResponse {
     brands: { status: string; completedAt: Date | null } | null;
     products: { status: string; completedAt: Date | null } | null;
   };
-}
+}

@@ -4,29 +4,37 @@ import Link from 'next/link';
 import {
   IconHome,
   IconGridDots,
-  IconSparkles,
-  IconTag,
   IconPackage,
-  IconHeart,
   IconUserCircle,
-  IconHelpCircle,
-  IconMessage,
   IconSettings,
   IconChevronRight,
+  IconCamera,
+  IconLock,
+  IconBell,
+  IconFlame,
+  IconRouter,
+  IconDeviceLaptop,
+  IconBolt,
+  IconDeviceTv,
+  IconClockHour4,
 } from '@tabler/icons-react';
 import { SIDE_NAV_GROUPS, type SideNavItem } from './navbar-data';
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number | string; className?: string }>> = {
   'ti-home': IconHome,
   'ti-grid-dots': IconGridDots,
-  'ti-sparkles': IconSparkles,
-  'ti-tag': IconTag,
   'ti-package': IconPackage,
-  'ti-heart': IconHeart,
   'ti-user-circle': IconUserCircle,
-  'ti-help-circle': IconHelpCircle,
-  'ti-message': IconMessage,
   'ti-settings': IconSettings,
+  'ti-camera': IconCamera,
+  'ti-lock': IconLock,
+  'ti-bell': IconBell,
+  'ti-flame': IconFlame,
+  'ti-router': IconRouter,
+  'ti-laptop': IconDeviceLaptop,
+  'ti-bolt': IconBolt,
+  'ti-device-tv': IconDeviceTv,
+  'ti-clock': IconClockHour4,
 };
 
 function NavItemIcon({ name, size = 18 }: { name: string; size?: number }) {
@@ -54,7 +62,7 @@ export function NavbarSidePill({
     <div
       onMouseEnter={onHoverEnter}
       onMouseLeave={onHoverLeave}
-      className={`fixed top-[82px] left-4 bottom-4 z-40 flex flex-col items-start overflow-hidden rounded-[28px] bg-white/70 backdrop-blur-3xl border border-black/[0.09] shadow-[0_2px_20px_rgba(0,0,0,0.07),0_0.5px_1px_rgba(0,0,0,0.05)] py-3.5 transition-all duration-300 ease-out ${
+      className={`fixed top-[82px] left-4 bottom-4 z-40 flex flex-col items-start overflow-y-auto overflow-x-hidden rounded-[28px] bg-white/70 backdrop-blur-3xl border border-black/[0.09] shadow-[0_2px_20px_rgba(0,0,0,0.07),0_0.5px_1px_rgba(0,0,0,0.05)] py-3.5 transition-all duration-300 ease-out ${
         expanded ? 'w-[210px] rounded-[22px]' : 'w-[56px]'
       }`}
     >
@@ -62,6 +70,11 @@ export function NavbarSidePill({
         <div key={group.label ?? gi} className="w-full">
           {gi > 0 && (
             <div className="mx-3.5 my-1.5 h-px bg-black/[0.09]" />
+          )}
+          {expanded && group.label && (
+            <div className="px-4 pt-1 pb-0.5 text-[9.5px] font-semibold uppercase tracking-[0.6px] text-black/24">
+              {group.label}
+            </div>
           )}
           {group.items.map((item: SideNavItem) => {
             const isActive = activeSection === item.id;

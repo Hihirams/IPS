@@ -4,7 +4,7 @@ import { AddToCartControls } from '@/components/add-to-cart-controls';
 import { StarRating } from '@/components/star-rating';
 import { ProductCard } from '@/components/product-card';
 import { api } from '@/lib/api';
-import { formatPrice } from '@/lib/utils';
+import { formatPriceMxn } from '@/lib/currency';
 import { getDisplayCategoryForProduct } from '@/lib/categories';
 import type { PublicProduct, PublicProductDetail } from '@ecommerce/types';
 import type { Metadata } from 'next';
@@ -135,6 +135,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     : [];
 
   const displayCat = getDisplayCategoryForProduct(product.category);
+  const priceFormatted = await formatPriceMxn(product.price);
 
   // Filter specs to show meaningful ones
   const specs = product.specs ?? {};
@@ -239,29 +240,29 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           {/* Precios */}
           <div className="rounded-xl border border-slate-200 bg-white p-5">
             <span className="text-3xl font-bold text-slate-900">
-              {formatPrice(product.price)}
+              {priceFormatted}
             </span>
             <p className="mt-1 text-xs text-slate-500">Precio en MXN + IVA</p>
           </div>
 
           {/* Stock status */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {product.stockStatus === 'available' && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700 ring-1 ring-green-200">
                 <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                En stock — Disponible
+                En stock — {product.stock} unidades disponibles
               </span>
             )}
             {product.stockStatus === 'low_stock' && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 ring-1 ring-amber-200">
                 <span className="h-2 w-2 rounded-full bg-amber-500" />
-                ¡Pocas unidades disponibles!
+                Pocas unidades — solo quedan {product.stock}
               </span>
             )}
             {product.stockStatus === 'out_of_stock' && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 ring-1 ring-amber-200">
-                <span className="h-2 w-2 rounded-full bg-amber-500" />
-                Entrega en aproximadamente 4 días hábiles
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-600 ring-1 ring-slate-200">
+                <span className="h-2 w-2 rounded-full bg-slate-400" />
+                Back order — entrega ~4 días hábiles
               </span>
             )}
           </div>
