@@ -9,9 +9,7 @@ interface ProductGridProps {
 }
 
 /**
- * Grid responsive de productos.
- *
- * Soporta estado de carga con skeletons.
+ * Grid responsive de productos con entrada escalonada.
  */
 export function ProductGrid({
   products = [],
@@ -30,8 +28,10 @@ export function ProductGrid({
 
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+      {products.map((product, i) => (
+        <div key={product.id} className={`animate-fade-up delay-${Math.min(i, 8)}`}>
+          <ProductCard product={product} />
+        </div>
       ))}
     </div>
   );

@@ -69,19 +69,19 @@ export function PaymentForm({ total, returnUrl, onSuccess, onError }: PaymentFor
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="rounded-xl border border-slate-200 bg-white p-6">
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">Información de Pago</h3>
+      <div className="glass-card animate-fade-up rounded-[22px] p-6">
+        <h3 className="mb-4 text-lg font-semibold tracking-tight text-ink-1">Información de pago</h3>
         <PaymentElement />
       </div>
 
-      <div className="rounded-xl bg-slate-50 p-4">
+      <div className="glass-card rounded-[18px] p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-600">Total a pagar</span>
-          <span className="text-2xl font-bold text-slate-900">
+          <span className="text-sm text-ink-2">Total a pagar</span>
+          <span className="text-2xl font-semibold tracking-tight text-ink-1">
             {formatPrice(total)}
           </span>
         </div>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-ink-3">
           Tus datos de pago están protegidos por Stripe. No almacenamos información de tarjetas.
         </p>
       </div>
@@ -89,7 +89,7 @@ export function PaymentForm({ total, returnUrl, onSuccess, onError }: PaymentFor
       <button
         type="submit"
         disabled={!stripe || isProcessing}
-        className="w-full rounded-lg bg-slate-900 py-3.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+        className="btn-primary w-full py-3.5"
       >
         {isProcessing ? (
           <span className="flex items-center justify-center gap-2">

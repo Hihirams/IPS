@@ -123,14 +123,14 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <nav className="mb-6 text-sm text-slate-500">
-        <Link href="/" className="hover:text-slate-900">Inicio</Link>
+      <nav className="animate-fade-in mb-6 text-sm text-ink-3">
+        <Link href="/" className="transition hover:text-ink-1">Inicio</Link>
         <span className="mx-2">/</span>
-        <Link href="/productos" className="hover:text-slate-900">Productos</Link>
+        <Link href="/productos" className="transition hover:text-ink-1">Productos</Link>
         {displayCat && (
           <>
             <span className="mx-2">/</span>
-            <span className="text-slate-900">{displayCat.icon} {displayCat.name}</span>
+            <span className="text-ink-1">{displayCat.icon} {displayCat.name}</span>
           </>
         )}
       </nav>
@@ -147,15 +147,15 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
         </aside>
 
         <div className="flex-1">
-          <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-slate-900">
+          <div className="mb-5 flex items-center justify-between">
+            <h1 className="text-2xl font-semibold tracking-tight text-ink-1">
               {params.busqueda
                 ? `Resultados para "${params.busqueda}"`
                 : displayCat
                   ? `${displayCat.icon} ${displayCat.name}`
-                  : 'Todos los Productos'}
+                  : 'Todos los productos'}
             </h1>
-            <span className="text-sm text-slate-600">{meta.total} resultados</span>
+            <span className="chip">{meta.total} resultados</span>
           </div>
 
           <Suspense
@@ -166,8 +166,10 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
             {products.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                  {products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                  {products.map((product, i) => (
+                    <div key={product.id} className={`animate-fade-up delay-${Math.min(i, 8)}`}>
+                      <ProductCard product={product} />
+                    </div>
                   ))}
                 </div>
 
@@ -183,12 +185,9 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
                 </div>
               </>
             ) : (
-              <div className="rounded-xl border border-slate-200 bg-white py-16 text-center">
-                <p className="text-lg text-slate-600">No se encontraron productos.</p>
-                <Link
-                  href="/productos"
-                  className="mt-4 inline-block text-sm font-medium text-slate-900 underline"
-                >
+              <div className="glass-card animate-scale-in rounded-[22px] py-16 text-center">
+                <p className="text-lg text-ink-2">No se encontraron productos.</p>
+                <Link href="/productos" className="btn-secondary mt-5 px-5 py-2.5">
                   Limpiar filtros
                 </Link>
               </div>

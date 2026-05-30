@@ -28,22 +28,22 @@ export function AddToCartControls({ productId }: AddToCartControlsProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center rounded-lg border border-slate-200">
+      <div className="flex items-center gap-3">
+        <div className="glass-card flex items-center rounded-full p-0.5">
           <button
             type="button"
             onClick={() => setQuantity((value) => Math.max(1, value - 1))}
             disabled={isLoading || quantity <= 1}
-            className="px-3 py-2 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-2 transition hover:bg-black/[0.05] disabled:opacity-40"
           >
-            -
+            −
           </button>
-          <span className="w-10 text-center text-sm font-medium">{quantity}</span>
+          <span className="w-9 text-center text-sm font-semibold text-ink-1">{quantity}</span>
           <button
             type="button"
             onClick={() => setQuantity((value) => Math.min(99, value + 1))}
             disabled={isLoading || quantity >= 99}
-            className="px-3 py-2 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-lg text-ink-2 transition hover:bg-black/[0.05] disabled:opacity-40"
           >
             +
           </button>
@@ -52,14 +52,14 @@ export function AddToCartControls({ productId }: AddToCartControlsProps) {
           type="button"
           onClick={handleAdd}
           disabled={isLoading}
-          className="flex-1 rounded-lg bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+          className="btn-primary flex-1 py-3"
         >
-          {isLoading ? 'Agregando...' : 'Agregar al Carrito'}
+          {isLoading ? 'Agregando…' : 'Agregar al carrito'}
         </button>
       </div>
 
       {added && (
-        <p className="text-sm text-green-700">
+        <p className="animate-fade-in text-sm text-emerald-600">
           Producto agregado.{' '}
           <Link href="/carrito" className="font-medium underline">
             Ver carrito
@@ -67,7 +67,7 @@ export function AddToCartControls({ productId }: AddToCartControlsProps) {
         </p>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="animate-fade-in text-sm text-red-500">{error}</p>}
     </div>
   );
 }

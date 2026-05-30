@@ -41,8 +41,8 @@ export function StarRating({ rating, readOnly = false, size = 'md', onRate }: St
         className={`${readOnly ? 'cursor-default' : 'cursor-pointer'} p-0.5 focus:outline-none`}
       >
         <svg
-          className={`${sizeClasses[size]} ${
-            filled || halfFilled ? 'text-yellow-400' : 'text-slate-200'
+          className={`${sizeClasses[size]} transition-colors ${
+            filled || halfFilled ? 'text-amber-400' : 'text-black/15'
           }`}
           viewBox="0 0 20 20"
           fill={filled ? 'currentColor' : 'none'}
@@ -69,7 +69,7 @@ export function StarRating({ rating, readOnly = false, size = 'md', onRate }: St
       <div className="flex">
         {[1, 2, 3, 4, 5].map((i) => renderStar(i))}
       </div>
-      {readOnly && <span className="ml-2 text-sm text-slate-600">{rating.toFixed(1)}</span>}
+      {readOnly && <span className="ml-2 text-sm text-ink-2">{rating.toFixed(1)}</span>}
     </div>
   );
 }

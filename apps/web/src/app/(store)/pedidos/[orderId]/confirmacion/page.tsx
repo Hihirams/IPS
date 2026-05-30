@@ -44,67 +44,64 @@ export default function OrderConfirmationPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 text-center">
       {/* Checkmark */}
-      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-        <svg className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="animate-pop-in mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/25">
+        <svg className="h-10 w-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
         </svg>
       </div>
 
-      <h1 className="mt-6 text-3xl font-bold text-slate-900">¡Pedido Confirmado!</h1>
-      <p className="mt-2 text-slate-600">
+      <h1 className="animate-fade-up delay-1 mt-6 text-3xl font-semibold tracking-tight text-ink-1">¡Pedido confirmado!</h1>
+      <p className="animate-fade-up delay-2 mt-2 text-ink-2">
         Gracias por tu compra. Te hemos enviado un correo de confirmación.
       </p>
 
       {isLoading ? (
-        <div className="mt-8 animate-pulse space-y-4">
-          <div className="mx-auto h-4 w-1/2 rounded bg-slate-200" />
-          <div className="mx-auto h-4 w-1/3 rounded bg-slate-200" />
+        <div className="mt-8 space-y-4">
+          <div className="shimmer mx-auto h-4 w-1/2 rounded-full" />
+          <div className="shimmer mx-auto h-4 w-1/3 rounded-full" />
         </div>
       ) : order ? (
-        <div className="mt-8 rounded-xl border border-slate-200 bg-white p-6 text-left">
+        <div className="glass-card animate-fade-up delay-3 mt-8 rounded-[22px] p-6 text-left">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500">Número de pedido</p>
-              <p className="text-lg font-bold text-slate-900">{order.orderNumber}</p>
+              <p className="text-sm text-ink-3">Número de pedido</p>
+              <p className="text-lg font-semibold text-ink-1">{order.orderNumber}</p>
             </div>
-            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700">
               {order.status}
             </span>
           </div>
 
-          <div className="mt-6 divide-y divide-slate-200">
+          <div className="mt-6 divide-y divide-[color:var(--hair-soft)]">
             {order.items.map((item, i) => (
               <div key={i} className="flex justify-between py-3 text-sm">
-                <span className="text-slate-700">
+                <span className="text-ink-2">
                   {item.productName} x {item.quantity}
                 </span>
-                <span className="font-medium text-slate-900">
+                <span className="font-medium text-ink-1">
                   {formatPrice(item.unitPrice * item.quantity)}
                 </span>
               </div>
             ))}
           </div>
 
-          <div className="mt-4 border-t border-slate-200 pt-4">
-            <div className="flex justify-between text-lg font-semibold">
+          <div className="mt-4 border-t border-[color:var(--hair)] pt-4">
+            <div className="flex justify-between text-lg font-semibold text-ink-1">
               <span>Total pagado</span>
               <span>{formatPrice(order.total)}</span>
             </div>
           </div>
         </div>
       ) : (
-        <p className="mt-8 text-slate-500">No se pudo cargar el pedido.</p>
+        <p className="mt-8 text-ink-3">No se pudo cargar el pedido.</p>
       )}
 
-      <div className="mt-8 flex justify-center gap-4">
-        <Link
-          href="/productos"
-          className="rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800"
-        >
-          Seguir Comprando
+      <div className="mt-8 flex justify-center gap-3">
+        <Link href="/productos" className="btn-primary px-6 py-3">
+          Seguir comprando
         </Link>
-        <button className="rounded-lg border border-slate-200 px-6 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
-          Descargar Recibo
+        <button className="btn-secondary px-6 py-3">
+          Descargar recibo
         </button>
       </div>
     </div>

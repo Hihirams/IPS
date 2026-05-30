@@ -91,39 +91,35 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* Hero Banner */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 py-20 text-white sm:py-28">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDE4YzAtOS45NC04LjA2LTE4LTE4LTE4UzAgOC4wNiAwIDE4czguMDYgMTggMTggMTggMTgtOC4wNiAxOC0xOHoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-50" />
-        <div className="relative mx-auto max-w-7xl px-4">
-          <div className="max-w-2xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur-sm">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-green-400" />
-              Catálogo actualizado
+      {/* Hero Banner — claro, sobrio, glass */}
+      <section className="relative overflow-hidden px-4 pt-10 sm:pt-16">
+        <div className="glass-panel relative mx-auto max-w-7xl overflow-hidden rounded-[32px] px-8 py-20 sm:px-14 sm:py-28">
+          {/* Halos suaves */}
+          <div className="animate-float-soft pointer-events-none absolute -right-20 -top-24 h-80 w-80 rounded-full bg-gradient-to-br from-blue-300/30 to-indigo-300/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-gradient-to-br from-violet-300/20 to-sky-300/20 blur-3xl" />
+
+          <div className="relative max-w-2xl">
+            <div className="chip animate-fade-up mb-5">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+              Catálogo actualizado a diario
             </div>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Tecnología de{' '}
-              <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                Última Generación
-              </span>
+            <h1 className="animate-fade-up delay-1 text-4xl font-semibold leading-[1.05] tracking-tight text-ink-1 sm:text-5xl lg:text-[3.75rem]">
+              Tecnología y seguridad,
+              <br />
+              <span className="text-ink-3">a tu alcance.</span>
             </h1>
-            <p className="mt-6 text-lg leading-relaxed text-slate-300">
-              Descubre miles de productos tecnológicos al mejor precio.
-              Laptops, smartphones, componentes, accesorios y mucho más.
+            <p className="animate-fade-up delay-2 mt-6 max-w-xl text-lg leading-relaxed text-ink-2">
+              Cámaras, redes, cómputo, energía y más. Miles de productos de las
+              mejores marcas, al mejor precio.
             </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link
-                href="/productos"
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-slate-900 shadow-lg shadow-white/10 transition hover:bg-slate-100 hover:shadow-white/20"
-              >
+            <div className="animate-fade-up delay-3 mt-9 flex flex-wrap gap-3">
+              <Link href="/productos" className="btn-primary px-7 py-3.5">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
                 </svg>
-                Explorar Catálogo
+                Explorar catálogo
               </Link>
-              <Link
-                href="/productos?soloStock=true"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/30 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:border-white/50 hover:bg-white/10"
-              >
+              <Link href="/productos?soloStock=true" className="btn-secondary px-7 py-3.5">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
@@ -137,35 +133,30 @@ export default async function HomePage() {
       {/* Categorías */}
       {displayCategories.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-16">
-          <div className="flex items-center justify-between">
+          <div className="flex items-end justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">Categorías</h2>
-              <p className="mt-1 text-sm text-slate-600">Explora por tipo de producto</p>
+              <h2 className="text-2xl font-semibold tracking-tight text-ink-1">Categorías</h2>
+              <p className="mt-1 text-sm text-ink-2">Explora por tipo de producto</p>
             </div>
-            <Link
-              href="/productos"
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
-            >
+            <Link href="/productos" className="link-accent text-sm">
               Ver todas →
             </Link>
           </div>
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {displayCategories.map((cat) => (
+            {displayCategories.map((cat, i) => (
               <Link
                 key={cat.slug}
                 href={`/productos?categoria=${cat.slug}`}
-                className="group relative flex items-center gap-4 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 transition-all duration-200 hover:border-indigo-200 hover:shadow-md hover:shadow-indigo-500/5"
+                className={`glass-interactive group animate-fade-up delay-${Math.min(i, 8)} flex items-center gap-4 rounded-[22px] p-4`}
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-50 to-blue-50 text-2xl transition-colors group-hover:from-indigo-100 group-hover:to-blue-100">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-black/[0.04] text-2xl transition-colors group-hover:bg-black/[0.06]">
                   {cat.icon}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-slate-900 truncate">{cat.name}</h3>
-                  <p className="text-xs text-slate-500">
-                    {cat.productCount} productos
-                  </p>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-sm font-semibold text-ink-1">{cat.name}</h3>
+                  <p className="text-xs text-ink-3">{cat.productCount} productos</p>
                 </div>
-                <svg className="h-5 w-5 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5 shrink-0 text-ink-4 transition-transform group-hover:translate-x-0.5 group-hover:text-ink-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </Link>
@@ -177,12 +168,12 @@ export default async function HomePage() {
       {/* Productos Destacados / Recientes */}
       {featuredProducts.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-16">
-          <div className="flex items-center justify-between">
+          <div className="flex items-end justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">
-                {hasFeatured ? 'Productos Destacados' : 'Productos Recientes'}
+              <h2 className="text-2xl font-semibold tracking-tight text-ink-1">
+                {hasFeatured ? 'Productos destacados' : 'Productos recientes'}
               </h2>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-ink-2">
                 {hasFeatured
                   ? 'Nuestra selección de los mejores productos'
                   : 'Lo más nuevo en nuestro catálogo'}
@@ -190,14 +181,16 @@ export default async function HomePage() {
             </div>
             <Link
               href={hasFeatured ? '/productos?isFeatured=true' : '/productos?ordenarPor=createdAt&orden=desc'}
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+              className="link-accent text-sm"
             >
               Ver todos →
             </Link>
           </div>
           <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {featuredProducts.map((product, i) => (
+              <div key={product.id} className={`animate-fade-up delay-${Math.min(i, 8)}`}>
+                <ProductCard product={product} />
+              </div>
             ))}
           </div>
         </section>
@@ -206,21 +199,23 @@ export default async function HomePage() {
       {/* Últimos Productos (si hay featured, mostrar esta sección adicional) */}
       {hasFeatured && latestProducts.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-16">
-          <div className="flex items-center justify-between">
+          <div className="flex items-end justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">Recién Llegados</h2>
-              <p className="mt-1 text-sm text-slate-600">Los últimos productos añadidos al catálogo</p>
+              <h2 className="text-2xl font-semibold tracking-tight text-ink-1">Recién llegados</h2>
+              <p className="mt-1 text-sm text-ink-2">Los últimos productos añadidos al catálogo</p>
             </div>
             <Link
               href="/productos?ordenarPor=createdAt&orden=desc"
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+              className="link-accent text-sm"
             >
               Ver todos →
             </Link>
           </div>
           <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {latestProducts.slice(0, 8).map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {latestProducts.slice(0, 8).map((product, i) => (
+              <div key={product.id} className={`animate-fade-up delay-${Math.min(i, 8)}`}>
+                <ProductCard product={product} />
+              </div>
             ))}
           </div>
         </section>
@@ -228,18 +223,15 @@ export default async function HomePage() {
 
       {/* CTA */}
       <section className="mx-auto max-w-7xl px-4 py-16">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 to-indigo-900 px-8 py-16 text-center text-white">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTIwIDBDOC45NTQgMCAwIDguOTU0IDAgMjBzOC45NTQgMjAgMjAgMjAgMjAtOC45NTQgMjAtMjBTMzEuMDQ2IDAgMjAgMHoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-60" />
+        <div className="glass-panel relative overflow-hidden rounded-[28px] px-8 py-16 text-center">
+          <div className="animate-float-soft pointer-events-none absolute -top-16 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-gradient-to-br from-blue-300/25 to-violet-300/20 blur-3xl" />
           <div className="relative">
-            <h2 className="text-3xl font-bold">¿Buscas algo específico?</h2>
-            <p className="mx-auto mt-4 max-w-xl text-slate-300">
+            <h2 className="text-3xl font-semibold tracking-tight text-ink-1">¿Buscas algo específico?</h2>
+            <p className="mx-auto mt-4 max-w-xl text-ink-2">
               Explora nuestro catálogo completo con miles de productos tecnológicos de las mejores marcas.
             </p>
-            <Link
-              href="/productos"
-              className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-sm font-semibold text-slate-900 shadow-lg transition hover:bg-slate-100"
-            >
-              Explorar Catálogo Completo
+            <Link href="/productos" className="btn-primary mt-8 px-8 py-3.5">
+              Explorar catálogo completo
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>

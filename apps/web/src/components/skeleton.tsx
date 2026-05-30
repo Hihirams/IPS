@@ -1,15 +1,15 @@
 /**
- * Skeleton loaders para estados de carga.
+ * Skeleton loaders para estados de carga (estilo glass + shimmer).
  */
 
 export function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-xl border border-slate-200 bg-white p-4">
-      <div className="aspect-[4/3] rounded-lg bg-slate-200" />
-      <div className="mt-3 space-y-2">
-        <div className="h-4 w-1/3 rounded bg-slate-200" />
-        <div className="h-5 w-3/4 rounded bg-slate-200" />
-        <div className="h-5 w-1/4 rounded bg-slate-200" />
+    <div className="glass-card rounded-[22px] p-3.5">
+      <div className="shimmer aspect-[4/3] rounded-[16px]" />
+      <div className="mt-3.5 space-y-2.5 px-1">
+        <div className="shimmer h-3 w-1/3 rounded-full" />
+        <div className="shimmer h-4 w-3/4 rounded-full" />
+        <div className="shimmer h-5 w-1/4 rounded-full" />
       </div>
     </div>
   );
@@ -17,11 +17,11 @@ export function SkeletonCard() {
 
 export function SkeletonText({ lines = 3 }: { lines?: number }) {
   return (
-    <div className="animate-pulse space-y-2">
+    <div className="space-y-2.5">
       {Array.from({ length: lines }).map((_, i) => (
         <div
           key={i}
-          className="h-4 rounded bg-slate-200"
+          className="shimmer h-4 rounded-full"
           style={{ width: `${100 - (i % 3) * 20}%` }}
         />
       ))}
@@ -30,7 +30,5 @@ export function SkeletonText({ lines = 3 }: { lines?: number }) {
 }
 
 export function SkeletonImage({ className = '' }: { className?: string }) {
-  return (
-    <div className={`animate-pulse rounded-lg bg-slate-200 ${className}`} />
-  );
+  return <div className={`shimmer rounded-[16px] ${className}`} />;
 }

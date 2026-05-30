@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
+import { IconStar } from '@tabler/icons-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@ecommerce/ui';
 import { useAuth } from '@/lib/auth-context';
@@ -103,16 +104,16 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="flex min-h-screen items-center justify-center px-4 py-12">
+      <div className="glass-panel animate-scale-in w-full max-w-md rounded-[28px] p-8">
         <div className="mb-8 text-center">
-          <Link href="/" className="text-2xl font-bold tracking-tight text-slate-900">
-            Ecommerce Tech
+          <Link href="/" className="inline-flex items-center gap-2 text-2xl font-semibold tracking-tight text-ink-1">
+            <IconStar size={22} /> MiTienda
           </Link>
-          <h1 className="mt-6 text-xl font-semibold text-slate-900">Iniciar sesión</h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <h1 className="mt-6 text-xl font-semibold tracking-tight text-ink-1">Iniciar sesión</h1>
+          <p className="mt-2 text-sm text-ink-2">
             ¿No tienes cuenta?{' '}
-            <Link href="/registro" className="font-medium text-slate-900 hover:underline">
+            <Link href="/registro" className="link-accent">
               Regístrate
             </Link>
           </p>
@@ -121,13 +122,13 @@ function LoginForm() {
         {mfaToken ? (
           <form onSubmit={handleMFASubmit} className="space-y-4">
             {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <div className="rounded-[14px] border border-red-500/20 bg-red-500/[0.08] p-3 text-sm text-red-600">
                 {error}
               </div>
             )}
 
             <div>
-              <label htmlFor="mfaCode" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="mfaCode" className="block text-sm font-medium text-ink-2">
                 Código MFA
               </label>
               <input
@@ -139,7 +140,7 @@ function LoginForm() {
                 required
                 value={mfaCode}
                 onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-center text-2xl tracking-widest focus:border-slate-900 focus:outline-none"
+                className="field mt-1 text-center text-2xl tracking-widest"
               />
             </div>
 
@@ -154,7 +155,7 @@ function LoginForm() {
                 setMfaCode('');
                 setError('');
               }}
-              className="w-full text-sm text-slate-500 hover:text-slate-900"
+              className="w-full text-sm text-ink-3 transition hover:text-ink-1"
             >
               Usar otra cuenta
             </button>
@@ -168,7 +169,7 @@ function LoginForm() {
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="email" className="block text-sm font-medium text-ink-2">
               Email
             </label>
             <input
@@ -178,12 +179,12 @@ function LoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+              className="field mt-1"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="password" className="block text-sm font-medium text-ink-2">
               Contraseña
             </label>
             <input
@@ -193,7 +194,7 @@ function LoginForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+              className="field mt-1"
             />
           </div>
 
@@ -204,7 +205,7 @@ function LoginForm() {
         )}
 
         <p className="mt-6 text-center">
-          <Link href="/" className="text-sm text-slate-500 hover:text-slate-900">
+          <Link href="/" className="text-sm text-ink-3 transition hover:text-ink-1">
             ← Volver a la tienda
           </Link>
         </p>
@@ -217,8 +218,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-slate-50">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-black/10 border-t-black/70" />
         </div>
       }
     >

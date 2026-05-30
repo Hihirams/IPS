@@ -13,27 +13,26 @@ export default function CartPage() {
 
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-16 text-center">
-        <svg
-          className="mx-auto h-16 w-16 text-slate-300"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1}
-            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-          />
-        </svg>
-        <h2 className="mt-4 text-xl font-semibold text-slate-900">Tu carrito está vacío</h2>
-        <p className="mt-2 text-slate-600">Agrega productos para comenzar tu compra.</p>
-        <Link
-          href="/productos"
-          className="mt-6 inline-flex rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800"
-        >
-          Explorar Productos
+      <div className="mx-auto max-w-7xl px-4 py-20 text-center">
+        <div className="glass-card animate-scale-in mx-auto flex h-20 w-20 items-center justify-center rounded-full">
+          <svg
+            className="h-9 w-9 text-ink-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+            />
+          </svg>
+        </div>
+        <h2 className="mt-5 text-xl font-semibold tracking-tight text-ink-1">Tu carrito está vacío</h2>
+        <p className="mt-2 text-ink-2">Agrega productos para comenzar tu compra.</p>
+        <Link href="/productos" className="btn-primary mt-6 px-6 py-3">
+          Explorar productos
         </Link>
       </div>
     );
@@ -45,12 +44,12 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-slate-900">Carrito ({itemCount} items)</h1>
+      <h1 className="animate-fade-up text-2xl font-semibold tracking-tight text-ink-1">Carrito ({itemCount} items)</h1>
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Lista de items */}
-        <div className="lg:col-span-2">
-          <div className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+        <div className="animate-fade-up lg:col-span-2">
+          <div className="glass-card divide-y divide-[color:var(--hair-soft)] rounded-[22px]">
             {cart.items.map((item) => (
               <CartItemRow key={item.id} item={item} />
             ))}
@@ -59,34 +58,34 @@ export default function CartPage() {
           <button
             onClick={clearCart}
             disabled={isLoading}
-            className="mt-4 text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
+            className="mt-4 rounded-full px-3 py-1.5 text-sm text-red-500 transition hover:bg-red-500/10 disabled:opacity-50"
           >
             Vaciar carrito
           </button>
         </div>
 
         {/* Resumen */}
-        <div className="space-y-4">
-          <div className="rounded-xl border border-slate-200 bg-white p-6">
-            <h2 className="text-lg font-semibold text-slate-900">Resumen</h2>
+        <div className="animate-fade-up delay-1 space-y-4">
+          <div className="glass-panel sticky top-[98px] rounded-[22px] p-6">
+            <h2 className="text-lg font-semibold tracking-tight text-ink-1">Resumen</h2>
 
-            <div className="mt-4 space-y-2 text-sm">
+            <div className="mt-4 space-y-2.5 text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-600">Subtotal</span>
-                <span className="font-medium">{formatPrice(cart.subtotal)}</span>
+                <span className="text-ink-2">Subtotal</span>
+                <span className="font-medium text-ink-1">{formatPrice(cart.subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-600">Envío</span>
-                <span className="font-medium">
+                <span className="text-ink-2">Envío</span>
+                <span className="font-medium text-ink-1">
                   {shipping === 0 ? 'Gratis' : formatPrice(shipping)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-600">IVA (16%)</span>
-                <span className="font-medium">{formatPrice(tax)}</span>
+                <span className="text-ink-2">IVA (16%)</span>
+                <span className="font-medium text-ink-1">{formatPrice(tax)}</span>
               </div>
-              <div className="border-t border-slate-200 pt-2">
-                <div className="flex justify-between text-lg font-semibold">
+              <div className="border-t border-[color:var(--hair)] pt-2.5">
+                <div className="flex justify-between text-lg font-semibold text-ink-1">
                   <span>Total</span>
                   <span>{formatPrice(total)}</span>
                 </div>
@@ -94,24 +93,21 @@ export default function CartPage() {
             </div>
 
             {cart.subtotal < 1000 && (
-              <p className="mt-3 text-xs text-slate-500">
+              <p className="mt-3 text-xs text-ink-3">
                 Te faltan {formatPrice(1000 - cart.subtotal)} para envío gratis.
               </p>
             )}
 
-            <Link
-              href="/checkout"
-              className="mt-6 block w-full rounded-lg bg-slate-900 py-3 text-center text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              Proceder al Checkout
+            <Link href="/checkout" className="btn-primary mt-6 w-full py-3">
+              Proceder al checkout
             </Link>
           </div>
 
           {/* Alertas */}
           {cart.priceAlerts.length > 0 && (
-            <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4">
-              <p className="text-sm font-medium text-yellow-800">⚠ Precios actualizados</p>
-              <ul className="mt-1 list-inside list-disc text-sm text-yellow-700">
+            <div className="rounded-[18px] border border-amber-500/20 bg-amber-500/[0.08] p-4">
+              <p className="text-sm font-medium text-amber-800">⚠ Precios actualizados</p>
+              <ul className="mt-1 list-inside list-disc text-sm text-amber-700">
                 {cart.priceAlerts.map((alert) => (
                   <li key={alert.productId}>
                     {alert.productName}: {formatPrice(alert.oldPrice)} → {formatPrice(alert.newPrice)}
@@ -122,7 +118,7 @@ export default function CartPage() {
           )}
 
           {cart.stockAlerts.length > 0 && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <div className="rounded-[18px] border border-amber-500/20 bg-amber-500/[0.08] p-4">
               <p className="text-sm font-medium text-amber-800">📦 Productos con entrega extendida</p>
               <p className="mt-1 text-xs text-amber-600">Estos productos pueden tardar ~1 semana en llegar.</p>
               <ul className="mt-1 list-inside list-disc text-sm text-amber-700">

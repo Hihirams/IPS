@@ -149,72 +149,72 @@ export default function UserSecurityPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Seguridad</h1>
-        <Link href="/perfil" className="mt-1 text-sm text-slate-500 hover:text-slate-900">
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      <div className="animate-fade-up mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight text-ink-1">Seguridad</h1>
+        <Link href="/perfil" className="mt-1 inline-block text-sm text-ink-3 transition hover:text-ink-1">
           ← Volver al perfil
         </Link>
       </div>
 
       <div className="space-y-8">
         {/* Change Password */}
-        <div className="rounded-xl border border-slate-200 bg-white p-6">
-          <h2 className="text-lg font-semibold text-slate-900">Cambiar contraseña</h2>
+        <div className="glass-card animate-fade-up rounded-[22px] p-6">
+          <h2 className="text-lg font-semibold tracking-tight text-ink-1">Cambiar contraseña</h2>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700">Contraseña actual</label>
+              <label className="block text-sm font-medium text-ink-2">Contraseña actual</label>
               <input
                 type="password"
                 value={passwordForm.currentPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+                className="field mt-1"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700">Nueva contraseña</label>
+              <label className="block text-sm font-medium text-ink-2">Nueva contraseña</label>
               <input
                 type="password"
                 value={passwordForm.newPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+                className="field mt-1"
               />
               {passwordErrors.newPassword && (
-                <p className="mt-1 text-xs text-red-600">{passwordErrors.newPassword}</p>
+                <p className="mt-1 text-xs text-red-500">{passwordErrors.newPassword}</p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700">Confirmar nueva contraseña</label>
+              <label className="block text-sm font-medium text-ink-2">Confirmar nueva contraseña</label>
               <input
                 type="password"
                 value={passwordForm.confirmPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+                className="field mt-1"
               />
               {passwordErrors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-600">{passwordErrors.confirmPassword}</p>
+                <p className="mt-1 text-xs text-red-500">{passwordErrors.confirmPassword}</p>
               )}
             </div>
             {passwordErrors.submit && (
-              <p className="text-sm text-red-600">{passwordErrors.submit}</p>
+              <p className="text-sm text-red-500">{passwordErrors.submit}</p>
             )}
             <button
               onClick={handleChangePassword}
               disabled={changingPassword}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+              className="btn-primary px-5 py-2.5"
             >
-              {changingPassword ? 'Cambiando...' : 'Cambiar contraseña'}
+              {changingPassword ? 'Cambiando…' : 'Cambiar contraseña'}
             </button>
           </div>
         </div>
 
         {/* Active Sessions */}
-        <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <div className="glass-card animate-fade-up delay-1 rounded-[22px] p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Sesiones activas</h2>
+            <h2 className="text-lg font-semibold tracking-tight text-ink-1">Sesiones activas</h2>
             <button
               onClick={revokeAllOtherSessions}
-              className="text-sm font-medium text-red-600 hover:text-red-800"
+              className="rounded-full px-2.5 py-1 text-sm font-medium text-red-500 transition hover:bg-red-500/10"
             >
               Cerrar todas las demás
             </button>
@@ -223,28 +223,28 @@ export default function UserSecurityPage() {
             {sessions.map((session) => (
               <div
                 key={session.id}
-                className="flex items-center justify-between rounded-lg border border-slate-100 p-4"
+                className="flex items-center justify-between rounded-[16px] border border-[color:var(--hair)] p-4"
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-slate-900">
+                    <span className="font-medium text-ink-1">
                       {parseDeviceInfo(session.deviceInfo)}
                     </span>
                     {session.isCurrent && (
-                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                      <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700">
                         Actual
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-slate-500">IP: {session.ipAddress ?? 'Desconocida'}</p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-sm text-ink-3">IP: {session.ipAddress ?? 'Desconocida'}</p>
+                  <p className="text-xs text-ink-4">
                     {new Date(session.createdAt).toLocaleString('es-MX')}
                   </p>
                 </div>
                 {!session.isCurrent && (
                   <button
                     onClick={() => revokeSession(session.id)}
-                    className="text-sm font-medium text-red-600 hover:text-red-800"
+                    className="rounded-full px-2.5 py-1 text-sm font-medium text-red-500 transition hover:bg-red-500/10"
                   >
                     Cerrar
                   </button>
@@ -255,29 +255,29 @@ export default function UserSecurityPage() {
         </div>
 
         {/* 2FA */}
-        <div className="rounded-xl border border-slate-200 bg-white p-6">
-          <h2 className="text-lg font-semibold text-slate-900">Autenticación de dos factores (2FA)</h2>
+        <div className="glass-card animate-fade-up delay-2 rounded-[22px] p-6">
+          <h2 className="text-lg font-semibold tracking-tight text-ink-1">Autenticación de dos factores (2FA)</h2>
           <div className="mt-4">
             {user?.mfaEnabled ? (
               <div>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-ink-2">
                   El 2FA está <strong>activado</strong>. Se requiere código de verificación en cada inicio de sesión.
                 </p>
                 <button
                   onClick={() => setMfaAction('disable')}
-                  className="mt-4 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="btn-secondary mt-4 px-5 py-2.5"
                 >
                   Desactivar 2FA
                 </button>
               </div>
             ) : (
               <div>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-ink-2">
                   El 2FA está <strong>desactivado</strong>. Actívalo para mayor seguridad.
                 </p>
                 <button
                   onClick={() => setMfaAction('enable')}
-                  className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                  className="btn-primary mt-4 px-5 py-2.5"
                 >
                   Activar 2FA
                 </button>
@@ -286,8 +286,8 @@ export default function UserSecurityPage() {
           </div>
 
           {mfaAction && (
-            <div className="mt-4 rounded-lg bg-slate-50 p-4">
-              <label className="block text-sm font-medium text-slate-700">
+            <div className="animate-fade-in mt-4 rounded-[16px] bg-black/[0.03] p-4">
+              <label className="block text-sm font-medium text-ink-2">
                 Código de verificación (6 dígitos)
               </label>
               <div className="mt-2 flex gap-3">
@@ -298,19 +298,19 @@ export default function UserSecurityPage() {
                   value={mfaCode}
                   onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
                   placeholder="000000"
-                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-center text-lg tracking-widest focus:border-slate-900 focus:outline-none"
+                  className="field flex-1 text-center text-lg tracking-widest"
                 />
                 <button
                   onClick={() => handleMFA(mfaAction)}
                   disabled={mfaCode.length !== 6 || mfaLoading}
-                  className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+                  className="btn-primary px-5 py-2.5"
                 >
-                  {mfaLoading ? 'Verificando...' : mfaAction === 'enable' ? 'Activar' : 'Desactivar'}
+                  {mfaLoading ? 'Verificando…' : mfaAction === 'enable' ? 'Activar' : 'Desactivar'}
                 </button>
               </div>
               <button
                 onClick={() => { setMfaAction(null); setMfaCode(''); }}
-                className="mt-2 text-sm text-slate-500 hover:text-slate-900"
+                className="mt-2 text-sm text-ink-3 transition hover:text-ink-1"
               >
                 Cancelar
               </button>

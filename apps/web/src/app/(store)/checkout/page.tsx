@@ -160,31 +160,31 @@ export default function CheckoutPage() {
   if (addressesLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-black/10 border-t-black/70" />
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-8">
+      <div className="glass-card animate-fade-up mb-8 rounded-[22px] px-6 py-5">
         <div className="flex items-center justify-between">
           {['Dirección', 'Resumen', 'Pago'].map((label, i) => (
             <div key={label} className="flex items-center gap-2">
               <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition ${
                   step > i + 1
-                    ? 'bg-green-600 text-white'
+                    ? 'bg-emerald-500 text-white'
                     : step === i + 1
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-200 text-slate-600'
+                      ? 'bg-black/[0.88] text-white'
+                      : 'bg-black/[0.06] text-ink-3'
                 }`}
               >
                 {step > i + 1 ? '✓' : i + 1}
               </div>
               <span
                 className={`text-sm font-medium ${
-                  step >= i + 1 ? 'text-slate-900' : 'text-slate-400'
+                  step >= i + 1 ? 'text-ink-1' : 'text-ink-4'
                 }`}
               >
                 {label}
@@ -195,24 +195,24 @@ export default function CheckoutPage() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="animate-fade-in mb-6 rounded-[16px] border border-red-500/20 bg-red-500/[0.08] p-4 text-sm text-red-600">
           {error}
         </div>
       )}
 
       {step === 1 && (
-        <div className="space-y-6">
-          <h2 className="text-xl font-bold text-slate-900">Dirección de Envío</h2>
+        <div className="animate-fade-up space-y-6">
+          <h2 className="text-xl font-semibold tracking-tight text-ink-1">Dirección de envío</h2>
 
           {addresses.length > 0 && (
             <div className="space-y-3">
               {addresses.map((addr) => (
                 <label
                   key={addr.id}
-                  className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${
+                  className={`flex cursor-pointer items-start gap-3 rounded-[18px] border p-4 transition ${
                     selectedAddressId === addr.id
-                      ? 'border-slate-900 bg-slate-50'
-                      : 'border-slate-200 bg-white'
+                      ? 'border-black/30 bg-black/[0.03] shadow-[var(--shadow-sm)]'
+                      : 'glass-card hover:bg-white/90'
                   }`}
                 >
                   <input
@@ -221,12 +221,12 @@ export default function CheckoutPage() {
                     value={addr.id}
                     checked={selectedAddressId === addr.id}
                     onChange={() => setSelectedAddressId(addr.id)}
-                    className="mt-1"
+                    className="mt-1 h-4 w-4 accent-[#0071e3]"
                   />
                   <div className="text-sm">
-                    <p className="font-medium text-slate-900">{labelDisplay(addr.label)}</p>
-                    <p className="text-slate-600">{addr.street}</p>
-                    <p className="text-slate-600">
+                    <p className="font-medium text-ink-1">{labelDisplay(addr.label)}</p>
+                    <p className="text-ink-2">{addr.street}</p>
+                    <p className="text-ink-2">
                       {addr.city}, {addr.state} {addr.zipCode}
                     </p>
                   </div>
@@ -239,7 +239,7 @@ export default function CheckoutPage() {
             <button
               onClick={() => setShowNewAddressForm(true)}
               disabled={addresses.length >= 5}
-              className="w-full rounded-lg border-2 border-dashed border-slate-300 py-4 text-sm font-medium text-slate-600 hover:border-slate-400 hover:text-slate-900 disabled:opacity-50"
+              className="w-full rounded-[18px] border-2 border-dashed border-black/15 py-4 text-sm font-medium text-ink-2 transition hover:border-black/25 hover:text-ink-1 disabled:opacity-50"
             >
               + Agregar nueva dirección
             </button>
@@ -253,50 +253,50 @@ export default function CheckoutPage() {
           <button
             onClick={handleValidateCart}
             disabled={isLoading || !selectedAddressId}
-            className="w-full rounded-lg bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+            className="btn-primary w-full py-3"
           >
-            {isLoading ? 'Validando...' : 'Continuar al Resumen'}
+            {isLoading ? 'Validando…' : 'Continuar al resumen'}
           </button>
         </div>
       )}
 
       {step === 2 && summary && (
-        <div className="space-y-6">
-          <h2 className="text-xl font-bold text-slate-900">Resumen de la Orden</h2>
+        <div className="animate-fade-up space-y-6">
+          <h2 className="text-xl font-semibold tracking-tight text-ink-1">Resumen de la orden</h2>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-6">
-            <div className="divide-y divide-slate-200">
+          <div className="glass-card rounded-[22px] p-6">
+            <div className="divide-y divide-[color:var(--hair-soft)]">
               {summary.items.map((item) => (
                 <div key={item.productId} className="flex items-center gap-4 py-4">
                   <div className="flex-1">
-                    <p className="font-medium text-slate-900">{item.name}</p>
-                    <p className="text-sm text-slate-500">
+                    <p className="font-medium text-ink-1">{item.name}</p>
+                    <p className="text-sm text-ink-3">
                       {item.quantity} x {formatPrice(item.unitPrice)}
                     </p>
                   </div>
-                  <span className="font-medium text-slate-900">
+                  <span className="font-medium text-ink-1">
                     {formatPrice(item.unitPrice * item.quantity)}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="mt-4 space-y-2 border-t border-slate-200 pt-4 text-sm">
+            <div className="mt-4 space-y-2.5 border-t border-[color:var(--hair)] pt-4 text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-600">Subtotal</span>
-                <span>{formatPrice(summary.subtotal)}</span>
+                <span className="text-ink-2">Subtotal</span>
+                <span className="text-ink-1">{formatPrice(summary.subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-600">Envío</span>
-                <span>
+                <span className="text-ink-2">Envío</span>
+                <span className="text-ink-1">
                   {summary.shipping === 0 ? 'Gratis' : formatPrice(summary.shipping)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-600">IVA (16%)</span>
-                <span>{formatPrice(summary.tax)}</span>
+                <span className="text-ink-2">IVA (16%)</span>
+                <span className="text-ink-1">{formatPrice(summary.tax)}</span>
               </div>
-              <div className="flex justify-between text-lg font-semibold">
+              <div className="flex justify-between text-lg font-semibold text-ink-1">
                 <span>Total</span>
                 <span>{formatPrice(summary.total)}</span>
               </div>
@@ -304,9 +304,9 @@ export default function CheckoutPage() {
           </div>
 
           {summary.priceAlerts.length > 0 && (
-            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-              <p className="text-sm font-medium text-yellow-800">⚠ Algunos precios han cambiado</p>
-              <ul className="mt-1 text-sm text-yellow-700">
+            <div className="rounded-[16px] border border-amber-500/20 bg-amber-500/[0.08] p-4">
+              <p className="text-sm font-medium text-amber-800">⚠ Algunos precios han cambiado</p>
+              <ul className="mt-1 text-sm text-amber-700">
                 {summary.priceAlerts.map((alert) => (
                   <li key={alert.productId}>
                     {alert.productName}: {formatPrice(alert.oldPrice)} → {formatPrice(alert.newPrice)}
@@ -317,7 +317,7 @@ export default function CheckoutPage() {
           )}
 
           {summary.stockAlerts.length > 0 && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <div className="rounded-[16px] border border-amber-500/20 bg-amber-500/[0.08] p-4">
               <p className="text-sm font-medium text-amber-800">📦 Algunos productos sin stock inmediato</p>
               <p className="mt-1 text-xs text-amber-700">Estos productos pueden tardar ~1 semana en llegar.</p>
               <ul className="mt-1 text-sm text-amber-700">
@@ -331,26 +331,23 @@ export default function CheckoutPage() {
           )}
 
           <div className="flex gap-3">
-            <button
-              onClick={() => setStep(1)}
-              className="rounded-lg border border-slate-200 px-6 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
+            <button onClick={() => setStep(1)} className="btn-secondary px-6 py-3">
               Regresar
             </button>
             <button
               onClick={handleCreatePaymentIntent}
               disabled={isLoading}
-              className="flex-1 rounded-lg bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+              className="btn-primary flex-1 py-3"
             >
-              {isLoading ? 'Procesando...' : 'Confirmar y Pagar'}
+              {isLoading ? 'Procesando…' : 'Confirmar y pagar'}
             </button>
           </div>
         </div>
       )}
 
       {step === 3 && clientSecret && (
-        <div className="space-y-6">
-          <h2 className="text-xl font-bold text-slate-900">Pago Seguro</h2>
+        <div className="animate-fade-up space-y-6">
+          <h2 className="text-xl font-semibold tracking-tight text-ink-1">Pago seguro</h2>
 
           <Elements stripe={stripePromise} options={{ clientSecret }}>
             <PaymentForm

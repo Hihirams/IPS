@@ -89,7 +89,7 @@ export function SearchBar({ variant }: { variant?: 'default' | 'pill' } = {}) {
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         placeholder="Buscar productos, marcas, categorías…"
-        className="w-full bg-transparent px-2.5 text-sm text-slate-900 placeholder:text-black/28 focus:outline-none"
+        className="w-full bg-transparent px-2.5 text-sm text-black/80 placeholder:text-black/28 focus:outline-none"
       />
       {query && (
         <button
@@ -107,11 +107,11 @@ export function SearchBar({ variant }: { variant?: 'default' | 'pill' } = {}) {
       )}
     </div>
   ) : (
-    <div className={`relative flex items-center rounded-lg border bg-white transition ${
-      isFocused ? 'border-slate-900 ring-1 ring-slate-900' : 'border-slate-200'
+    <div className={`relative flex items-center rounded-full border bg-white/60 backdrop-blur-xl transition ${
+      isFocused ? 'border-[rgba(0,113,227,0.5)] ring-[3px] ring-[rgba(0,113,227,0.16)]' : 'border-[color:var(--hair)]'
     }`}>
       <svg
-        className="ml-3 h-5 w-5 text-slate-400"
+        className="ml-3.5 h-5 w-5 text-ink-4"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -134,7 +134,7 @@ export function SearchBar({ variant }: { variant?: 'default' | 'pill' } = {}) {
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         placeholder="Buscar productos..."
-        className="w-full bg-transparent px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+        className="w-full bg-transparent px-3 py-2.5 text-sm text-ink-1 placeholder:text-ink-4 focus:outline-none"
       />
       {query && (
         <button
@@ -143,14 +143,14 @@ export function SearchBar({ variant }: { variant?: 'default' | 'pill' } = {}) {
             setQuery('');
             performSearch('');
           }}
-          className="mr-2 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+          className="mr-2 rounded-full p-1 text-ink-4 transition hover:bg-black/[0.05] hover:text-ink-2"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       )}
-      <span className="mr-3 hidden rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-500 sm:block">
+      <span className="mr-3 hidden rounded-md bg-black/[0.05] px-1.5 py-0.5 text-xs text-ink-3 sm:block">
         Ctrl+K
       </span>
     </div>

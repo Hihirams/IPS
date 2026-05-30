@@ -161,34 +161,34 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Breadcrumb */}
-      <nav className="mb-6 text-sm text-slate-500">
-        <Link href="/" className="hover:text-slate-900">Inicio</Link>
+      <nav className="animate-fade-in mb-6 text-sm text-ink-3">
+        <Link href="/" className="transition hover:text-ink-1">Inicio</Link>
         <span className="mx-2">/</span>
-        <Link href="/productos" className="hover:text-slate-900">Productos</Link>
+        <Link href="/productos" className="transition hover:text-ink-1">Productos</Link>
         {displayCat && (
           <>
             <span className="mx-2">/</span>
-            <Link href={`/productos?categoria=${displayCat.slug}`} className="hover:text-slate-900">
+            <Link href={`/productos?categoria=${displayCat.slug}`} className="transition hover:text-ink-1">
               {displayCat.icon} {displayCat.name}
             </Link>
           </>
         )}
         <span className="mx-2">/</span>
-        <span className="text-slate-900">{product.name}</span>
+        <span className="text-ink-1">{product.name}</span>
       </nav>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         {/* Galería de imágenes */}
-        <div className="space-y-4">
-          <div className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <div className="animate-fade-up space-y-4">
+          <div className="glass-card group relative aspect-square overflow-hidden rounded-[24px]">
             {product.images[0] ? (
               <img
                 src={product.images[0]}
                 alt={product.name}
-                className="h-full w-full object-contain p-4 transition duration-300 group-hover:scale-110"
+                className="h-full w-full object-contain p-5 transition-transform duration-500 ease-out group-hover:scale-110"
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-slate-400">
+              <div className="flex h-full items-center justify-center text-ink-4">
                 <svg className="h-20 w-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -202,12 +202,12 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               {product.images.slice(0, 8).map((img, i) => (
                 <div
                   key={i}
-                  className="group aspect-square overflow-hidden rounded-lg border border-slate-200 bg-white transition hover:border-indigo-300"
+                  className="glass-card group aspect-square overflow-hidden rounded-[16px] transition hover:bg-white/90"
                 >
                   <img
                     src={img}
                     alt={`${product.name} - ${i + 1}`}
-                    className="h-full w-full object-contain p-1 transition duration-300 group-hover:scale-110"
+                    className="h-full w-full object-contain p-1.5 transition-transform duration-500 group-hover:scale-110"
                   />
                 </div>
               ))}
@@ -216,13 +216,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         </div>
 
         {/* Información del producto */}
-        <div className="space-y-6">
+        <div className="animate-fade-up delay-1 space-y-6">
           <div>
-<div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
                {product.brand && (
                  <Link
                    href={`/productos?marca=${product.brand.slug}`}
-                   className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                   className="link-accent text-sm"
                  >
                    {product.brand.name}
                  </Link>
@@ -230,51 +230,51 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
                {displayCat && (
                  <Link
                    href={`/productos?categoria=${displayCat.slug}`}
-                   className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-200"
+                   className="chip transition hover:bg-black/[0.08]"
                  >
                    {displayCat.icon} {displayCat.name}
                  </Link>
                )}
              </div>
-            <h1 className="mt-2 text-2xl font-bold text-slate-900 lg:text-3xl">{product.name}</h1>
+            <h1 className="mt-2.5 text-2xl font-semibold tracking-tight text-ink-1 lg:text-3xl">{product.name}</h1>
 
             {product.reviewSummary && product.reviewSummary.totalReviews > 0 && (
               <div className="mt-2 flex items-center gap-2">
                 <StarRating rating={product.reviewSummary.averageRating} readOnly size="sm" />
-                <span className="text-sm text-slate-600">
+                <span className="text-sm text-ink-2">
                   ({product.reviewSummary.totalReviews} reseñas)
                 </span>
               </div>
             )}
 
             {/* SKU */}
-            <p className="mt-1 text-xs text-slate-400">SKU: {product.sku}</p>
+            <p className="mt-1.5 text-xs text-ink-4">SKU: {product.sku}</p>
           </div>
 
           {/* Precios */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
-            <span className="text-3xl font-bold text-slate-900">
+          <div className="glass-card rounded-[20px] p-5">
+            <span className="text-3xl font-semibold tracking-tight text-ink-1">
               {priceFormatted}
             </span>
-            <p className="mt-1 text-xs text-slate-500">Precio en MXN + IVA</p>
+            <p className="mt-1 text-xs text-ink-3">Precio en MXN + IVA</p>
           </div>
 
           {/* Stock status */}
           <div className="flex flex-wrap items-center gap-3">
             {product.stockStatus === 'available' && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700 ring-1 ring-green-200">
-                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-sm font-medium text-emerald-700 ring-1 ring-emerald-500/20">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
                 En stock — {product.stock} unidades disponibles
               </span>
             )}
             {product.stockStatus === 'low_stock' && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 ring-1 ring-amber-200">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1.5 text-sm font-medium text-amber-700 ring-1 ring-amber-500/20">
                 <span className="h-2 w-2 rounded-full bg-amber-500" />
                 Pocas unidades — solo quedan {product.stock}
               </span>
             )}
             {product.stockStatus === 'out_of_stock' && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 ring-1 ring-amber-200">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1.5 text-sm font-medium text-amber-700 ring-1 ring-amber-500/20">
                 <span className="h-2 w-2 rounded-full bg-amber-500" />
                 Disponible por pedido — entrega ~1 semana
               </span>
@@ -284,44 +284,41 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           {/* Descripción */}
           {product.description && (
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">Descripción</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{product.description}</p>
+              <h3 className="text-sm font-semibold text-ink-1">Descripción</h3>
+              <p className="mt-2 text-sm leading-relaxed text-ink-2">{product.description}</p>
             </div>
           )}
 
           {/* Selector de cantidad + Agregar al carrito */}
           <div className="space-y-3">
             <AddToCartControls productId={product.id} />
-            <Link
-              href="/carrito"
-              className="block w-full rounded-xl border-2 border-indigo-600 py-3 text-center text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"
-            >
-              Comprar Ahora
+            <Link href="/carrito" className="btn-secondary block w-full py-3 text-center">
+              Comprar ahora
             </Link>
           </div>
 
           {/* Info adicional */}
-          <div className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 p-4">
-            <div className="flex items-center gap-2 text-xs text-slate-600">
-              <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="glass-card grid grid-cols-2 gap-3 rounded-[18px] p-4">
+            <div className="flex items-center gap-2 text-xs text-ink-2">
+              <svg className="h-4 w-4 text-ink-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
               </svg>
               Envío a todo México
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-600">
-              <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex items-center gap-2 text-xs text-ink-2">
+              <svg className="h-4 w-4 text-ink-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
               Pago seguro con Stripe
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-600">
-              <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex items-center gap-2 text-xs text-ink-2">
+              <svg className="h-4 w-4 text-ink-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               Garantía incluida
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-600">
-              <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex items-center gap-2 text-xs text-ink-2">
+              <svg className="h-4 w-4 text-ink-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
               </svg>
               Facturación disponible
@@ -332,17 +329,17 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
       {/* Especificaciones */}
       {visibleSpecs.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-xl font-bold text-slate-900">Especificaciones Técnicas</h2>
-          <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
+        <div className="mt-14">
+          <h2 className="text-xl font-semibold tracking-tight text-ink-1">Especificaciones técnicas</h2>
+          <div className="glass-card mt-4 overflow-hidden rounded-[22px]">
             <table className="w-full text-left text-sm">
-              <tbody className="divide-y divide-slate-200">
+              <tbody>
                 {visibleSpecs.map(([key, value]) => (
-                  <tr key={key} className="bg-white even:bg-slate-50">
-                    <th className="w-1/3 px-6 py-4 font-medium text-slate-900">
+                  <tr key={key} className="border-b border-[color:var(--hair-soft)] last:border-0 even:bg-black/[0.02]">
+                    <th className="w-1/3 px-6 py-4 font-medium text-ink-1">
                       {formatSpecLabel(key)}
                     </th>
-                    <td className="px-6 py-4 text-slate-600">{formatSpecValue(key, value)}</td>
+                    <td className="px-6 py-4 text-ink-2">{formatSpecValue(key, value)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -353,24 +350,24 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
       {/* Reseñas */}
       {product.reviews && product.reviews.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-xl font-bold text-slate-900">Reseñas de clientes</h2>
+        <div className="mt-14">
+          <h2 className="text-xl font-semibold tracking-tight text-ink-1">Reseñas de clientes</h2>
           <div className="mt-4 space-y-4">
             {product.reviews.map((review) => (
-              <div key={review.id} className="rounded-xl border border-slate-200 bg-white p-6">
+              <div key={review.id} className="glass-card rounded-[22px] p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-600">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/[0.06] text-sm font-semibold text-ink-1">
                       {(review.user?.name ?? 'U').charAt(0).toUpperCase()}
                     </div>
-                    <span className="text-sm font-medium text-slate-900">
+                    <span className="text-sm font-medium text-ink-1">
                       {review.user?.name ?? 'Usuario'}
                     </span>
                   </div>
                   <StarRating rating={review.rating} readOnly size="sm" />
                 </div>
-                <h4 className="mt-3 font-semibold text-slate-900">{review.title}</h4>
-                <p className="mt-1 text-sm text-slate-600">{review.body}</p>
+                <h4 className="mt-3 font-semibold text-ink-1">{review.title}</h4>
+                <p className="mt-1 text-sm text-ink-2">{review.body}</p>
               </div>
             ))}
           </div>
@@ -379,11 +376,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
       {/* Productos relacionados */}
       {relatedProducts.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-xl font-bold text-slate-900">Productos Relacionados</h2>
+        <div className="mt-14">
+          <h2 className="text-xl font-semibold tracking-tight text-ink-1">Productos relacionados</h2>
           <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {relatedProducts.slice(0, 4).map((p) => (
-              <ProductCard key={p.id} product={p} />
+            {relatedProducts.slice(0, 4).map((p, i) => (
+              <div key={p.id} className={`animate-fade-up delay-${Math.min(i, 8)}`}>
+                <ProductCard product={p} />
+              </div>
             ))}
           </div>
         </div>

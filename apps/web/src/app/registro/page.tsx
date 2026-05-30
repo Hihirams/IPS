@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { IconStar } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@ecommerce/ui';
 import { useAuth } from '@/lib/auth-context';
@@ -100,16 +101,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="flex min-h-screen items-center justify-center px-4 py-12">
+      <div className="glass-panel animate-scale-in w-full max-w-md rounded-[28px] p-8">
         <div className="mb-8 text-center">
-          <Link href="/" className="text-2xl font-bold tracking-tight text-slate-900">
-            Ecommerce Tech
+          <Link href="/" className="inline-flex items-center gap-2 text-2xl font-semibold tracking-tight text-ink-1">
+            <IconStar size={22} /> MiTienda
           </Link>
-          <h1 className="mt-6 text-xl font-semibold text-slate-900">Crear cuenta</h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <h1 className="mt-6 text-xl font-semibold tracking-tight text-ink-1">Crear cuenta</h1>
+          <p className="mt-2 text-sm text-ink-2">
             ¿Ya tienes cuenta?{' '}
-            <Link href="/login" className="font-medium text-slate-900 hover:underline">
+            <Link href="/login" className="link-accent">
               Inicia sesión
             </Link>
           </p>
@@ -117,13 +118,13 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <div className="rounded-[14px] border border-red-500/20 bg-red-500/[0.08] p-3 text-sm text-red-600">
               {error}
             </div>
           )}
 
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="name" className="block text-sm font-medium text-ink-2">
               Nombre (opcional)
             </label>
             <input
@@ -132,12 +133,12 @@ export default function RegisterPage() {
               autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+              className="field mt-1"
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="email" className="block text-sm font-medium text-ink-2">
               Email
             </label>
             <input
@@ -147,15 +148,15 @@ export default function RegisterPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+              className="field mt-1"
             />
             {fieldErrors.email && (
-              <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>
+              <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="password" className="block text-sm font-medium text-ink-2">
               Contraseña
             </label>
             <input
@@ -165,12 +166,12 @@ export default function RegisterPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+              className="field mt-1"
             />
             {fieldErrors.password && (
-              <p className="mt-1 text-xs text-red-600">{fieldErrors.password}</p>
+              <p className="mt-1 text-xs text-red-500">{fieldErrors.password}</p>
             )}
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-ink-3">
               Mín. 8 caracteres, 1 mayúscula, 1 número y 1 carácter especial
             </p>
           </div>
@@ -181,7 +182,7 @@ export default function RegisterPage() {
         </form>
 
         <p className="mt-6 text-center">
-          <Link href="/" className="text-sm text-slate-500 hover:text-slate-900">
+          <Link href="/" className="text-sm text-ink-3 transition hover:text-ink-1">
             ← Volver a la tienda
           </Link>
         </p>

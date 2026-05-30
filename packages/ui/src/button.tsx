@@ -9,19 +9,19 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'default', size = 'md', isLoading, children, className, disabled, ...props }, ref) => {
     const baseStyles =
-      'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
+      'inline-flex items-center justify-center rounded-full font-medium tracking-tight transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3]/40 focus-visible:ring-offset-2 active:scale-[0.985] disabled:pointer-events-none disabled:opacity-50';
 
     const variants = {
-      default: 'bg-slate-900 text-white hover:bg-slate-800',
-      outline: 'border border-slate-200 bg-transparent hover:bg-slate-100',
-      ghost: 'hover:bg-slate-100',
-      danger: 'bg-red-600 text-white hover:bg-red-700',
+      default: 'bg-black/[0.88] text-white shadow-[0_1px_2px_rgba(0,0,0,0.18)] hover:bg-black hover:-translate-y-px hover:shadow-[0_6px_18px_rgba(0,0,0,0.2)]',
+      outline: 'border border-black/[0.09] bg-white/70 backdrop-blur-xl text-black/80 hover:bg-white/90',
+      ghost: 'text-black/60 hover:bg-black/[0.04] hover:text-black/85',
+      danger: 'bg-red-500 text-white hover:bg-red-600',
     };
 
     const sizes = {
-      sm: 'h-9 px-3 text-sm',
-      md: 'h-10 px-4 py-2',
-      lg: 'h-11 px-8',
+      sm: 'h-9 px-4 text-sm',
+      md: 'h-10 px-5 py-2',
+      lg: 'h-12 px-8',
     };
 
     return (

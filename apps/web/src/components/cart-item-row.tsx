@@ -33,9 +33,9 @@ export function CartItemRow({ item }: CartItemRowProps) {
   const subtotal = item.currentPrice * item.quantity;
 
   return (
-    <div className="flex gap-4 py-4">
+    <div className="flex gap-4 p-4">
       {/* Imagen */}
-      <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100">
+      <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-[16px] bg-black/[0.03]">
         {item.product.images[0] ? (
           <img
             src={item.product.images[0]}
@@ -43,7 +43,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-slate-400">
+          <div className="flex h-full items-center justify-center text-ink-4">
             <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
@@ -61,47 +61,47 @@ export function CartItemRow({ item }: CartItemRowProps) {
         <div className="flex justify-between">
           <div>
             {item.product.brand && (
-              <span className="text-xs text-slate-500">{item.product.brand.name}</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.4px] text-ink-3">{item.product.brand.name}</span>
             )}
-            <h3 className="text-sm font-medium text-slate-900">{item.product.name}</h3>
+            <h3 className="text-sm font-medium text-ink-1">{item.product.name}</h3>
           </div>
           <button
             onClick={() => removeItem(item.id)}
             disabled={isLoading}
-            className="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
+            className="h-fit rounded-full px-2.5 py-1 text-sm text-red-500 transition hover:bg-red-500/10 disabled:opacity-50"
           >
             Eliminar
           </button>
         </div>
 
         {item.priceChanged && (
-          <span className="mt-1 text-xs text-yellow-600">
+          <span className="mt-1 text-xs text-amber-600">
             ⚠ El precio ha cambiado desde que lo agregaste
           </span>
         )}
 
         <div className="mt-auto flex items-center justify-between">
           {/* Selector de cantidad */}
-          <div className="flex items-center rounded-lg border border-slate-200">
+          <div className="glass-card flex items-center rounded-full p-0.5">
             <button
               onClick={() => handleQuantityChange(-1)}
               disabled={isLoading || item.quantity <= 1}
-              className="px-3 py-1 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-ink-2 transition hover:bg-black/[0.05] disabled:opacity-40"
             >
-              -
+              −
             </button>
-            <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
+            <span className="w-9 text-center text-sm font-semibold text-ink-1">{item.quantity}</span>
             <button
               onClick={() => handleQuantityChange(1)}
               disabled={isLoading || item.quantity >= 99}
-              className="px-3 py-1 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-ink-2 transition hover:bg-black/[0.05] disabled:opacity-40"
             >
               +
             </button>
           </div>
 
           {/* Subtotal */}
-          <span className="text-sm font-semibold text-slate-900">
+          <span className="text-sm font-semibold text-ink-1">
             {formatPrice(subtotal)}
           </span>
         </div>

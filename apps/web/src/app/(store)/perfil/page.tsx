@@ -69,31 +69,31 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-black/10 border-t-black/70" />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Mi Perfil</h1>
-        <p className="mt-1 text-sm text-slate-600">Gestiona tu información personal</p>
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      <div className="animate-fade-up mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight text-ink-1">Mi perfil</h1>
+        <p className="mt-1 text-sm text-ink-2">Gestiona tu información personal</p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6">
+      <div className="glass-card animate-fade-up rounded-[22px] p-6">
         <div className="space-y-6">
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-slate-700">Email</label>
+            <label className="block text-sm font-medium text-ink-2">Email</label>
             <div className="mt-1 flex items-center gap-2">
-              <span className="text-slate-900">{profile?.email}</span>
+              <span className="text-ink-1">{profile?.email}</span>
               {profile?.isEmailVerified ? (
-                <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700">
                   Verificado
                 </span>
               ) : (
-                <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
+                <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700">
                   No verificado
                 </span>
               )}
@@ -102,55 +102,53 @@ export default function ProfilePage() {
 
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-slate-700">Nombre</label>
+            <label className="block text-sm font-medium text-ink-2">Nombre</label>
             {editing ? (
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+                className="field mt-1"
               />
             ) : (
-              <p className="mt-1 text-slate-900">{profile?.name ?? 'Sin nombre'}</p>
+              <p className="mt-1 text-ink-1">{profile?.name ?? 'Sin nombre'}</p>
             )}
           </div>
 
           {/* Phone */}
           <div>
-            <label className="block text-sm font-medium text-slate-700">Teléfono</label>
+            <label className="block text-sm font-medium text-ink-2">Teléfono</label>
             {editing ? (
               <input
                 type="tel"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 placeholder="+521234567890"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
+                className="field mt-1"
               />
             ) : (
-              <p className="mt-1 text-slate-900">{profile?.phone ?? 'Sin teléfono'}</p>
+              <p className="mt-1 text-ink-1">{profile?.phone ?? 'Sin teléfono'}</p>
             )}
           </div>
 
           {/* MFA Status */}
           <div>
-            <label className="block text-sm font-medium text-slate-700">Autenticación de dos factores</label>
+            <label className="block text-sm font-medium text-ink-2">Autenticación de dos factores</label>
             <div className="mt-1">
               {profile?.mfaEnabled ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-700">
                   Activada
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-                  Desactivada
-                </span>
+                <span className="chip">Desactivada</span>
               )}
             </div>
           </div>
 
           {/* Member since */}
           <div>
-            <label className="block text-sm font-medium text-slate-700">Miembro desde</label>
-            <p className="mt-1 text-slate-900">
+            <label className="block text-sm font-medium text-ink-2">Miembro desde</label>
+            <p className="mt-1 text-ink-1">
               {profile?.createdAt
                 ? new Date(profile.createdAt).toLocaleDateString('es-MX')
                 : 'N/A'}
@@ -159,28 +157,18 @@ export default function ProfilePage() {
         </div>
 
         {/* Actions */}
-        <div className="mt-6 flex items-center gap-4">
+        <div className="mt-6 flex items-center gap-3">
           {editing ? (
             <>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
-              >
-                {saving ? 'Guardando...' : 'Guardar cambios'}
+              <button onClick={handleSave} disabled={saving} className="btn-primary px-5 py-2.5">
+                {saving ? 'Guardando…' : 'Guardar cambios'}
               </button>
-              <button
-                onClick={() => setEditing(false)}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
+              <button onClick={() => setEditing(false)} className="btn-secondary px-5 py-2.5">
                 Cancelar
               </button>
             </>
           ) : (
-            <button
-              onClick={() => setEditing(true)}
-              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-            >
+            <button onClick={() => setEditing(true)} className="btn-primary px-5 py-2.5">
               Editar perfil
             </button>
           )}
@@ -189,26 +177,17 @@ export default function ProfilePage() {
 
       {/* Quick links */}
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Link
-          href="/perfil/pedidos"
-          className="rounded-xl border border-slate-200 bg-white p-6 hover:border-slate-300"
-        >
-          <h3 className="font-semibold text-slate-900">Mis Pedidos</h3>
-          <p className="mt-1 text-sm text-slate-500">Ver historial de compras</p>
+        <Link href="/perfil/pedidos" className="glass-interactive animate-fade-up delay-1 rounded-[22px] p-6">
+          <h3 className="font-semibold text-ink-1">Mis pedidos</h3>
+          <p className="mt-1 text-sm text-ink-3">Ver historial de compras</p>
         </Link>
-        <Link
-          href="/perfil/direcciones"
-          className="rounded-xl border border-slate-200 bg-white p-6 hover:border-slate-300"
-        >
-          <h3 className="font-semibold text-slate-900">Direcciones</h3>
-          <p className="mt-1 text-sm text-slate-500">Gestionar direcciones de envío</p>
+        <Link href="/perfil/direcciones" className="glass-interactive animate-fade-up delay-2 rounded-[22px] p-6">
+          <h3 className="font-semibold text-ink-1">Direcciones</h3>
+          <p className="mt-1 text-sm text-ink-3">Gestionar direcciones de envío</p>
         </Link>
-        <Link
-          href="/perfil/seguridad"
-          className="rounded-xl border border-slate-200 bg-white p-6 hover:border-slate-300"
-        >
-          <h3 className="font-semibold text-slate-900">Seguridad</h3>
-          <p className="mt-1 text-sm text-slate-500">Contraseña, sesiones y 2FA</p>
+        <Link href="/perfil/seguridad" className="glass-interactive animate-fade-up delay-3 rounded-[22px] p-6">
+          <h3 className="font-semibold text-ink-1">Seguridad</h3>
+          <p className="mt-1 text-sm text-ink-3">Contraseña, sesiones y 2FA</p>
         </Link>
       </div>
     </div>
