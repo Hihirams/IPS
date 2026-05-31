@@ -62,6 +62,12 @@ export default fp(async function csrfPlugin(app: FastifyInstance) {
       return;
     }
 
+    // Eximir el endpoint de reportes CSP: lo llama el navegador automáticamente
+    // (sin token CSRF) para reportar violaciones de la política. No muta datos.
+    if (url.startsWith('/api/csp-report')) {
+      return;
+    }
+
     // Eximir rutas de auth que no requieren CSRF en ciertos flujos
     // (login/register/refresh en flujo inicial antes de tener CSRF token)
     // NOTA: En producción estricta, incluso estas rutas deberían tener CSRF.
