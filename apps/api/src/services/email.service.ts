@@ -146,6 +146,41 @@ export async function sendWelcomeEmail(
 }
 
 /**
+ * Email con enlace para restablecer la contraseña.
+ * SECURITY: el enlace lleva un token de un solo uso con expiración corta (30 min).
+ * No se incluye ninguna contraseña; el token solo permite FIJAR una nueva.
+ */
+export async function sendPasswordResetEmail(
+  app: FastifyInstance,
+  {
+    userEmail,
+    userName,
+    resetUrl,
+  }: {
+    userEmail: string;
+    userName: string | null;
+    resetUrl: string;
+  }
+): Promise<void> {
+  const title = 'Restablece tu contraseña';
+  const content = `
+    <h2>Hola ${userName ?? 'Cliente'},</h2>
+    <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta.</p>
+    <p>Haz clic en el botón para crear una nueva contraseña. Este enlace
+       <strong>caduca en 30 minutos</strong> y solo puede usarse una vez.</p>
+    <p style="margin-top: 24px;">
+      <a href="${resetUrl}" class="button">Restablecer contraseña</a>
+    </p>
+    <div class="alert">
+      Si tú no solicitaste este cambio, ignora este correo: tu contraseña no se modificará.
+    </div>
+  `;
+
+  const { html, text } = baseTemplate(title, content);
+  await sendEmail(app, { to: userEmail, subject: title, html, text });
+}
+
+/**
  * Confirmación de pedido.
  */
 export async function sendOrderConfirmation(

@@ -281,13 +281,24 @@ export async function checkoutRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'Invalid signature' });
     }
 
-    // Idempotencia: verificar si ya procesamos este evento
+    // Idempotencia atómica (defensa ante reintentos concurrentes de Stripe):
+    // SET NX + TTL garantiza que solo el PRIMER request con este event.id procese.
+    // Sin esto, dos webhooks simultáneos del mismo evento podían pasar el check de DB
+    // antes de que el primero escribiera el historial (TOCTOU race).
+    const eventLockKey = `stripe_evt:${event.id}`;
+    const firstTime = await app.redis.set(eventLockKey, '1', 'EX', 60 * 60 * 24 * 3, 'NX');
+    if (firstTime === null) {
+      app.log.info({ action: 'STRIPE_WEBHOOK_DUPLICATE', eventId: event.id, source: 'redis_lock' });
+      return reply.status(200).send({ received: true });
+    }
+
+    // Idempotencia secundaria: histórico persistente en DB (sobrevive a flush de Redis)
     const existingEvent = await prisma.orderStatusHistory.findFirst({
       where: { notes: { contains: event.id } },
     });
 
     if (existingEvent) {
-      app.log.info({ action: 'STRIPE_WEBHOOK_DUPLICATE', eventId: event.id });
+      app.log.info({ action: 'STRIPE_WEBHOOK_DUPLICATE', eventId: event.id, source: 'db' });
       return reply.status(200).send({ received: true });
     }
 
@@ -318,6 +329,9 @@ export async function checkoutRoutes(app: FastifyInstance) {
       }
     } catch (err) {
       app.log.error({ action: 'STRIPE_WEBHOOK_ERROR', error: (err as Error).message, eventId: event.id });
+      // Liberar el lock de idempotencia para permitir un reprocesamiento manual del evento,
+      // ya que el handler falló antes de persistir el resultado.
+      await app.redis.del(eventLockKey).catch(() => undefined);
       // No retornar 500 — Stripe reintentará. Retornar 200 para evitar reintentos innecesarios.
       // En producción, usar una cola de jobs (BullMQ, etc.) para reintentar manualmente.
     }
@@ -347,6 +361,41 @@ async function handlePaymentSucceeded(
 
   if (order.status === 'CONFIRMED') {
     app.log.info({ action: 'ORDER_ALREADY_CONFIRMED', orderId: order.id });
+    return;
+  }
+
+  // SECURITY (defensa en profundidad): el monto realmente cobrado por Stripe debe
+  // coincidir con el total de la orden calculado server-side. El PaymentIntent ya se
+  // crea desde el carrito en backend, pero verificamos igual: si por cualquier razón
+  // (bug, manipulación, evento adulterado que pasara la firma) el monto no cuadra,
+  // NO confirmamos la orden y emitimos alerta para revisión manual.
+  const expectedCents = Math.round(Number(order.total) * 100);
+  const paidCents = paymentIntent.amount_received || paymentIntent.amount;
+  const expectedCurrency = 'mxn';
+  if (paidCents !== expectedCents || paymentIntent.currency !== expectedCurrency) {
+    app.log.error({
+      action: 'WEBHOOK_AMOUNT_MISMATCH',
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      expectedCents,
+      paidCents,
+      expectedCurrency,
+      paidCurrency: paymentIntent.currency,
+      paymentIntentId: paymentIntent.id,
+      eventId,
+    });
+    alertInvalidWebhook(
+      app,
+      `amount_mismatch order=${order.orderNumber} expected=${expectedCents} paid=${paidCents}`
+    ).catch(() => undefined);
+    // Registrar la discrepancia sin confirmar el pago.
+    await prisma.orderStatusHistory.create({
+      data: {
+        orderId: order.id,
+        status: order.status,
+        notes: `ALERTA: monto del pago no coincide (esperado ${expectedCents}c, pagado ${paidCents}c). Evento Stripe: ${eventId}. Revisión manual requerida.`,
+      },
+    }).catch(() => undefined);
     return;
   }
 

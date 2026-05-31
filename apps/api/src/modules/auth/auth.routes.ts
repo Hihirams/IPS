@@ -1,10 +1,12 @@
 import type { FastifyInstance } from 'fastify';
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../lib/prisma';
 import {
   generateTokenPair,
   refreshAccessToken,
   revokeRefreshToken,
+  revokeAllUserSessions,
   hashToken,
 } from './jwt.service';
 import {
@@ -14,11 +16,11 @@ import {
   disableMFA,
   isMFAEnabled,
 } from './mfa.service';
-import { RegisterSchema, LoginSchema } from './auth.schema';
-import type { RegisterInput, LoginInput } from './auth.schema';
+import { RegisterSchema, LoginSchema, ForgotPasswordSchema, ResetPasswordSchema } from './auth.schema';
+import type { RegisterInput, LoginInput, ForgotPasswordInput, ResetPasswordInput } from './auth.schema';
 import { authenticate } from '../../middleware/auth.middleware';
 import { initAdminSession, revokeAdminSession } from '../../middleware/admin-auth.middleware';
-import { sendWelcomeEmail, sendNewDeviceAlert } from '../../services/email.service';
+import { sendWelcomeEmail, sendNewDeviceAlert, sendPasswordResetEmail, sendPasswordChangedNotification } from '../../services/email.service';
 import { alertBruteForce } from '../../services/alert.service';
 
 /**
@@ -561,6 +563,156 @@ export async function authRoutes(app: FastifyInstance) {
       });
     }
   });
+
+  // ==========================================
+  // POST /api/auth/forgot-password
+  // Genera un token de un solo uso (30 min) y envía email.
+  // SECURITY: respuesta SIEMPRE genérica para no revelar si el email existe.
+  // ==========================================
+  app.post(
+    '/api/auth/forgot-password',
+    {
+      config: {
+        rateLimit: {
+          max: 3,
+          timeWindow: '15 minutes',
+        },
+      },
+    },
+    async (request, reply) => {
+      const { email } = request.validate(ForgotPasswordSchema, 'body') as ForgotPasswordInput;
+
+      // Respuesta idéntica exista o no el usuario (anti-enumeración de cuentas).
+      const genericResponse = {
+        success: true,
+        data: {
+          message:
+            'Si el email está registrado, recibirás un enlace para restablecer tu contraseña.',
+        },
+      };
+
+      const user = await prisma.user.findFirst({
+        where: { email, deletedAt: null },
+        select: { id: true, email: true, name: true, isBanned: true },
+      });
+
+      // No filtramos diferencias: misma respuesta y mismo timing aproximado.
+      if (!user || user.isBanned) {
+        return reply.status(200).send(genericResponse);
+      }
+
+      // Token aleatorio; en Redis se guarda SOLO su hash (un solo uso, TTL 30 min).
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const tokenHash = hashToken(rawToken);
+      await app.redis.setex(`pwd_reset:${tokenHash}`, 30 * 60, user.id);
+
+      const frontendUrl = (app.config.CORS_ORIGIN ?? 'http://localhost:3000')
+        .split(',')[0]
+        .trim();
+      const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
+
+      // Envío no bloqueante; la respuesta no depende de que el email se envíe.
+      sendPasswordResetEmail(app, {
+        userEmail: user.email,
+        userName: user.name,
+        resetUrl,
+      }).catch((err) => {
+        app.log.error({ err, userId: user.id }, 'Error al enviar email de reset de contraseña');
+      });
+
+      // SOLO en desarrollo: imprime el enlace en la terminal para poder probar sin email.
+      // En producción NUNCA se loggea el token (sería una fuga).
+      if (app.config.NODE_ENV !== 'production') {
+        app.log.info({ resetUrl }, '[DEV] Enlace de reset de contraseña (solo desarrollo)');
+      }
+
+      app.log.info({ action: 'PASSWORD_RESET_REQUESTED', userId: user.id });
+      return reply.status(200).send(genericResponse);
+    }
+  );
+
+  // ==========================================
+  // POST /api/auth/reset-password
+  // Verifica el token de un solo uso, cambia la contraseña y revoca TODAS las sesiones.
+  // ==========================================
+  app.post(
+    '/api/auth/reset-password',
+    {
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: '15 minutes',
+        },
+      },
+    },
+    async (request, reply) => {
+      const { token, password } = request.validate(
+        ResetPasswordSchema,
+        'body'
+      ) as ResetPasswordInput;
+
+      const tokenHash = hashToken(token);
+      const redisKey = `pwd_reset:${tokenHash}`;
+      const userId = await app.redis.get(redisKey);
+
+      const invalidTokenResponse = {
+        success: false,
+        error: {
+          code: 'INVALID_RESET_TOKEN',
+          message: 'El enlace es inválido o ha expirado. Solicita uno nuevo.',
+        },
+      };
+
+      if (!userId) {
+        return reply.status(400).send(invalidTokenResponse);
+      }
+
+      // Un solo uso: invalidar el token ANTES de procesar (evita doble uso por carrera).
+      await app.redis.del(redisKey);
+
+      const user = await prisma.user.findFirst({
+        where: { id: userId, deletedAt: null },
+        select: { id: true, email: true, name: true },
+      });
+
+      if (!user) {
+        return reply.status(400).send(invalidTokenResponse);
+      }
+
+      // Hashear y fijar la nueva contraseña.
+      const passwordHash = await bcrypt.hash(password, 12);
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash,
+          failedLoginAttempts: 0,
+          lastFailedLogin: null,
+        },
+      });
+
+      // SECURITY: tras cambiar la contraseña, revocar todas las sesiones activas.
+      await revokeAllUserSessions(app, user.id);
+
+      // Notificación (no bloqueante).
+      sendPasswordChangedNotification(app, {
+        userEmail: user.email,
+        userName: user.name,
+      }).catch((err) => {
+        app.log.error(
+          { err, userId: user.id },
+          'Error al enviar notificación de cambio de contraseña'
+        );
+      });
+
+      app.log.info({ action: 'PASSWORD_RESET_COMPLETED', userId: user.id });
+      return reply.status(200).send({
+        success: true,
+        data: {
+          message: 'Tu contraseña ha sido actualizada. Por favor inicia sesión nuevamente.',
+        },
+      });
+    }
+  );
 
   // ==========================================
   // GET /api/auth/me

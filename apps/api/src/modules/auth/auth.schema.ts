@@ -85,3 +85,34 @@ export const MFAVerifySchema = z.object({
 });
 
 export type MFAVerifyInput = z.infer<typeof MFAVerifySchema>;
+
+// ==========================================
+// Olvidé / Restablecer contraseña
+// ==========================================
+
+export const ForgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'El email es obligatorio')
+    .email('Email inválido'),
+});
+
+export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
+
+export const ResetPasswordSchema = z.object({
+  token: z.string().min(1, 'El token es obligatorio'),
+  password: z
+    .string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .refine((val) => PASSWORD_REGEX.uppercase.test(val), {
+      message: 'Debe contener al menos una mayúscula',
+    })
+    .refine((val) => PASSWORD_REGEX.number.test(val), {
+      message: 'Debe contener al menos un número',
+    })
+    .refine((val) => PASSWORD_REGEX.special.test(val), {
+      message: 'Debe contener al menos un carácter especial',
+    }),
+});
+
+export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;

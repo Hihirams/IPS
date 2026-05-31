@@ -70,7 +70,9 @@ export default fp(async function csrfPlugin(app: FastifyInstance) {
       url === '/api/auth/login' ||
       url === '/api/auth/register' ||
       url === '/api/auth/mfa/verify' ||
-      url === '/api/auth/refresh'
+      url === '/api/auth/refresh' ||
+      url === '/api/auth/forgot-password' ||
+      url === '/api/auth/reset-password'
     ) {
       return;
     }

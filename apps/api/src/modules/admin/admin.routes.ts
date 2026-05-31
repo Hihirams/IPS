@@ -278,19 +278,41 @@ export async function adminRoutes(app: FastifyInstance) {
       const adminId = request.user!.id;
       const ipAddress = request.ip ?? 'unknown';
 
-      if (!body.image) {
+      if (!body.image || typeof body.image !== 'string') {
         return reply.status(400).send({
           success: false,
           error: { code: 'MISSING_IMAGE', message: 'No se proporcionó imagen.' },
         });
       }
 
+      // SECURITY: límite duro de tamaño ANTES de decodificar (evita DoS por payload enorme).
+      // base64 expande ~33%, así que ~7MB de string ≈ 5MB de binario (límite real en upload.service).
+      const MAX_BASE64_LENGTH = 7 * 1024 * 1024;
+      if (body.image.length > MAX_BASE64_LENGTH) {
+        return reply.status(413).send({
+          success: false,
+          error: { code: 'IMAGE_TOO_LARGE', message: 'La imagen excede el tamaño máximo permitido (5MB).' },
+        });
+      }
+
+      // SECURITY: derivar el MIME del propio data-URI (no confiar en body.mimeType del cliente)
+      // y aceptar solo formatos de imagen permitidos. upload.service revalida tamaño y MIME.
+      const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp'];
+      const dataUriMatch = body.image.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,/);
+      const detectedMime = dataUriMatch ? dataUriMatch[1] : (body.mimeType ?? 'image/jpeg');
+      if (!ALLOWED_MIME.includes(detectedMime)) {
+        return reply.status(400).send({
+          success: false,
+          error: { code: 'INVALID_IMAGE_TYPE', message: 'Tipo de imagen no permitido. Solo JPEG, PNG o WebP.' },
+        });
+      }
+
       try {
         // Si es base64, decodificar
-        const base64Data = body.image.replace(/^data:image\/\w+;base64,/, '');
+        const base64Data = body.image.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '');
         const buffer = Buffer.from(base64Data, 'base64');
         const filename = body.filename ?? 'upload';
-        const mimeType = body.mimeType ?? 'image/jpeg';
+        const mimeType = detectedMime;
 
         const result = await uploadImage(app, buffer, filename, mimeType, adminId, ipAddress);
 

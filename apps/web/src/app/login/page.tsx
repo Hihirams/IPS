@@ -196,6 +196,11 @@ function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               className="field mt-1"
             />
+            <p className="mt-2 text-right">
+              <Link href="/forgot-password" className="text-sm text-ink-3 transition hover:text-ink-1">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </p>
           </div>
 
           <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>

@@ -67,3 +67,9 @@ uploads/
 
 # Project spec documents
 Phase 0.txt
+
+# Dev throwaway scripts / dumps (no versionar)
+disable-mfa.js
+api-dev-*.txt
+syscom*.yaml
+syscom-product-count-report.json
